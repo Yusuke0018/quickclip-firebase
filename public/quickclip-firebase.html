@@ -1,0 +1,682 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QuickClip Firebase - スマート定型文管理</title>
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #1f2937; }
+        ::-webkit-scrollbar-thumb { background: #4b5563; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #6b7280; }
+        .line-clamp-3 {
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+    
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { getFirestore, collection, doc, setDoc, getDoc, getDocs, deleteDoc, query, where, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyDjrzvuPGmNrQuqzBnN_y5xDStCU-y5HlM",
+            authDomain: "quickclip-4446c.firebaseapp.com",
+            projectId: "quickclip-4446c",
+            storageBucket: "quickclip-4446c.firebasestorage.app",
+            messagingSenderId: "31602504581",
+            appId: "1:31602504581:web:c80fe6bf2a0e60c281caec",
+            measurementId: "G-H0GXNRP5TW"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        const googleProvider = new GoogleAuthProvider();
+
+        window.firebase = {
+            auth,
+            db,
+            googleProvider,
+            signInWithPopup,
+            signOut,
+            onAuthStateChanged,
+            collection,
+            doc,
+            setDoc,
+            getDoc,
+            getDocs,
+            deleteDoc,
+            query,
+            where,
+            orderBy,
+            serverTimestamp
+        };
+    </script>
+
+    <script type="text/babel">
+        const { useState, useEffect, useMemo } = React;
+        const { Copy, Plus, Edit2, Trash2, Search, Menu, X, Check, Folder, Star, Key, FileText, Mail, Code, Globe, Heart, Zap, Settings, Shield, Book, Users, Calendar, DollarSign, Phone, Home, Briefcase, Award, Coffee, Music, Camera, Clock, Download, Upload, AlertCircle, LogIn, LogOut, User } = lucide;
+
+        const App = () => {
+            const [user, setUser] = useState(null);
+            const [loading, setLoading] = useState(true);
+            const [categories, setCategories] = useState([]);
+            const [snippets, setSnippets] = useState([]);
+            const [selectedCategory, setSelectedCategory] = useState(null);
+            const [searchQuery, setSearchQuery] = useState('');
+            const [showMenu, setShowMenu] = useState(false);
+            const [showAddModal, setShowAddModal] = useState(false);
+            const [showEditModal, setShowEditModal] = useState(false);
+            const [showCategoryModal, setShowCategoryModal] = useState(false);
+            const [showEditCategoryModal, setShowEditCategoryModal] = useState(false);
+            const [showMigrationModal, setShowMigrationModal] = useState(false);
+            const [editingSnippet, setEditingSnippet] = useState(null);
+            const [editingCategory, setEditingCategory] = useState(null);
+            const [copiedId, setCopiedId] = useState(null);
+            const [newSnippet, setNewSnippet] = useState({ title: '', content: '', categoryId: null });
+            const [newCategory, setNewCategory] = useState({ name: '', icon: 'folder', color: '#3B82F6' });
+
+            const iconMap = {
+                key: Key, folder: Folder, star: Star, filetext: FileText,
+                mail: Mail, code: Code, globe: Globe, heart: Heart, zap: Zap,
+                settings: Settings, shield: Shield, book: Book, users: Users,
+                calendar: Calendar, dollar: DollarSign, phone: Phone, home: Home,
+                briefcase: Briefcase, award: Award, coffee: Coffee, music: Music,
+                camera: Camera, clock: Clock
+            };
+
+            const colorOptions = [
+                '#EF4444', '#F59E0B', '#10B981', '#3B82F6', '#6366F1', 
+                '#8B5CF6', '#EC4899', '#06B6D4', '#84CC16', '#F97316'
+            ];
+
+            // Firebase helper functions
+            const signInWithGoogle = async () => {
+                try {
+                    const result = await window.firebase.signInWithPopup(window.firebase.auth, window.firebase.googleProvider);
+                    return result.user;
+                } catch (error) {
+                    console.error("Error signing in:", error);
+                    throw error;
+                }
+            };
+
+            const logOut = async () => {
+                try {
+                    await window.firebase.signOut(window.firebase.auth);
+                } catch (error) {
+                    console.error("Error signing out:", error);
+                    throw error;
+                }
+            };
+
+            const getCategories = async (userId) => {
+                try {
+                    const categoriesRef = window.firebase.collection(window.firebase.db, 'users', userId, 'categories');
+                    const q = window.firebase.query(categoriesRef, window.firebase.orderBy('order', 'asc'));
+                    const snapshot = await window.firebase.getDocs(q);
+                    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                } catch (error) {
+                    console.error("Error getting categories:", error);
+                    return [];
+                }
+            };
+
+            const getSnippets = async (userId) => {
+                try {
+                    const snippetsRef = window.firebase.collection(window.firebase.db, 'users', userId, 'snippets');
+                    const q = window.firebase.query(snippetsRef, window.firebase.orderBy('createdAt', 'desc'));
+                    const snapshot = await window.firebase.getDocs(q);
+                    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                } catch (error) {
+                    console.error("Error getting snippets:", error);
+                    return [];
+                }
+            };
+
+            const createCategory = async (userId, categoryData) => {
+                try {
+                    const categoriesRef = window.firebase.collection(window.firebase.db, 'users', userId, 'categories');
+                    const docRef = window.firebase.doc(categoriesRef);
+                    await window.firebase.setDoc(docRef, {
+                        ...categoryData,
+                        createdAt: window.firebase.serverTimestamp(),
+                        updatedAt: window.firebase.serverTimestamp()
+                    });
+                    return docRef.id;
+                } catch (error) {
+                    console.error("Error creating category:", error);
+                    throw error;
+                }
+            };
+
+            const createSnippet = async (userId, snippetData) => {
+                try {
+                    const snippetsRef = window.firebase.collection(window.firebase.db, 'users', userId, 'snippets');
+                    const docRef = window.firebase.doc(snippetsRef);
+                    await window.firebase.setDoc(docRef, {
+                        ...snippetData,
+                        createdAt: window.firebase.serverTimestamp(),
+                        updatedAt: window.firebase.serverTimestamp()
+                    });
+                    return docRef.id;
+                } catch (error) {
+                    console.error("Error creating snippet:", error);
+                    throw error;
+                }
+            };
+
+            const updateSnippet = async (userId, snippetId, snippetData) => {
+                try {
+                    const snippetRef = window.firebase.doc(window.firebase.db, 'users', userId, 'snippets', snippetId);
+                    await window.firebase.setDoc(snippetRef, {
+                        ...snippetData,
+                        updatedAt: window.firebase.serverTimestamp()
+                    }, { merge: true });
+                } catch (error) {
+                    console.error("Error updating snippet:", error);
+                    throw error;
+                }
+            };
+
+            const deleteSnippet = async (userId, snippetId) => {
+                try {
+                    await window.firebase.deleteDoc(window.firebase.doc(window.firebase.db, 'users', userId, 'snippets', snippetId));
+                } catch (error) {
+                    console.error("Error deleting snippet:", error);
+                    throw error;
+                }
+            };
+
+            const migrateFromLocalStorage = async (userId) => {
+                try {
+                    const localCategories = JSON.parse(localStorage.getItem('quickclip_categories') || '[]');
+                    const localSnippets = JSON.parse(localStorage.getItem('quickclip_snippets') || '[]');
+                    
+                    for (const category of localCategories) {
+                        await createCategory(userId, {
+                            name: category.name,
+                            icon: category.icon || 'folder',
+                            color: category.color || '#3B82F6',
+                            order: category.order || 0
+                        });
+                    }
+                    
+                    for (const snippet of localSnippets) {
+                        await createSnippet(userId, {
+                            title: snippet.title,
+                            content: snippet.content,
+                            category: snippet.category,
+                            isPinned: snippet.pinned || false,
+                            tags: snippet.tags || []
+                        });
+                    }
+                    
+                    localStorage.removeItem('quickclip_categories');
+                    localStorage.removeItem('quickclip_snippets');
+                    
+                    return { success: true };
+                } catch (error) {
+                    console.error("Error migrating data:", error);
+                    throw error;
+                }
+            };
+
+            // Auth state listener
+            useEffect(() => {
+                const unsubscribe = window.firebase.onAuthStateChanged(window.firebase.auth, async (authUser) => {
+                    setUser(authUser);
+                    if (authUser) {
+                        await loadUserData(authUser.uid);
+                        
+                        const hasLocalData = localStorage.getItem('quickclip_categories') || localStorage.getItem('quickclip_snippets');
+                        if (hasLocalData) {
+                            setShowMigrationModal(true);
+                        }
+                    } else {
+                        setCategories([]);
+                        setSnippets([]);
+                    }
+                    setLoading(false);
+                });
+
+                return unsubscribe;
+            }, []);
+
+            const loadUserData = async (userId) => {
+                try {
+                    const [categoriesData, snippetsData] = await Promise.all([
+                        getCategories(userId),
+                        getSnippets(userId)
+                    ]);
+                    setCategories(categoriesData);
+                    setSnippets(snippetsData);
+                } catch (error) {
+                    console.error('Error loading user data:', error);
+                }
+            };
+
+            const handleMigration = async () => {
+                if (!user) return;
+                
+                try {
+                    await migrateFromLocalStorage(user.uid);
+                    await loadUserData(user.uid);
+                    setShowMigrationModal(false);
+                    alert('ローカルデータを正常に移行しました');
+                } catch (error) {
+                    console.error('Migration error:', error);
+                    alert('データ移行に失敗しました');
+                }
+            };
+
+            const copyToClipboard = (text, id) => {
+                navigator.clipboard.writeText(text).then(() => {
+                    setCopiedId(id);
+                    setTimeout(() => setCopiedId(null), 2000);
+                }).catch(err => {
+                    console.error('コピーに失敗:', err);
+                });
+            };
+
+            const addSnippet = async () => {
+                if (!user || !newSnippet.title.trim() || !newSnippet.content.trim()) return;
+
+                try {
+                    await createSnippet(user.uid, {
+                        title: newSnippet.title,
+                        content: newSnippet.content,
+                        categoryId: newSnippet.categoryId || selectedCategory || categories[0]?.id,
+                        isPinned: false,
+                        tags: []
+                    });
+                    await loadUserData(user.uid);
+                    setNewSnippet({ title: '', content: '', categoryId: null });
+                    setShowAddModal(false);
+                } catch (error) {
+                    console.error('Error adding snippet:', error);
+                    alert('定型文の追加に失敗しました');
+                }
+            };
+
+            const togglePin = async (snippetId) => {
+                if (!user) return;
+
+                const snippet = snippets.find(s => s.id === snippetId);
+                if (!snippet) return;
+
+                try {
+                    await updateSnippet(user.uid, snippetId, { isPinned: !snippet.isPinned });
+                    await loadUserData(user.uid);
+                } catch (error) {
+                    console.error('Error toggling pin:', error);
+                }
+            };
+
+            const deleteSnippetHandler = async (snippetId) => {
+                if (!user || !confirm('この定型文を削除しますか？')) return;
+
+                try {
+                    await deleteSnippet(user.uid, snippetId);
+                    await loadUserData(user.uid);
+                } catch (error) {
+                    console.error('Error deleting snippet:', error);
+                    alert('定型文の削除に失敗しました');
+                }
+            };
+
+            const filteredSnippets = useMemo(() => {
+                let filtered = selectedCategory
+                    ? snippets.filter(s => s.categoryId === selectedCategory)
+                    : snippets;
+
+                if (searchQuery) {
+                    filtered = filtered.filter(s =>
+                        s.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                        s.content.toLowerCase().includes(searchQuery.toLowerCase())
+                    );
+                }
+
+                return filtered.sort((a, b) => {
+                    if (a.isPinned && !b.isPinned) return -1;
+                    if (!a.isPinned && b.isPinned) return 1;
+                    return 0;
+                });
+            }, [snippets, selectedCategory, searchQuery]);
+
+            if (loading) {
+                return (
+                    <div className="min-h-screen bg-gray-900 flex items-center justify-center">
+                        <div className="text-white">読み込み中...</div>
+                    </div>
+                );
+            }
+
+            if (!user) {
+                return (
+                    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-900">
+                        <div className="p-8 bg-gray-800 rounded-lg shadow-2xl">
+                            <h1 className="text-3xl font-bold text-white mb-6">QuickClip</h1>
+                            <p className="text-gray-400 mb-8">定型文管理アプリケーション</p>
+                            <button
+                                onClick={signInWithGoogle}
+                                className="flex items-center gap-3 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                            >
+                                <LogIn className="w-5 h-5" />
+                                Googleでログイン
+                            </button>
+                        </div>
+                    </div>
+                );
+            }
+
+            return (
+                <div className="min-h-screen bg-gray-900 text-white">
+                    {/* Header */}
+                    <header className="bg-gray-800 shadow-lg">
+                        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
+                            <div className="flex items-center gap-4">
+                                <button
+                                    onClick={() => setShowMenu(!showMenu)}
+                                    className="md:hidden p-2 hover:bg-gray-700 rounded-lg transition-colors"
+                                >
+                                    {showMenu ? <X /> : <Menu />}
+                                </button>
+                                <h1 className="text-2xl font-bold">QuickClip</h1>
+                            </div>
+                            
+                            <div className="flex items-center gap-4">
+                                <div className="relative hidden md:block">
+                                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                                    <input
+                                        type="text"
+                                        placeholder="検索..."
+                                        value={searchQuery}
+                                        onChange={(e) => setSearchQuery(e.target.value)}
+                                        className="pl-10 pr-4 py-2 bg-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 w-64"
+                                    />
+                                </div>
+                                
+                                <button
+                                    onClick={() => setShowAddModal(true)}
+                                    className="bg-blue-600 px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
+                                >
+                                    <Plus className="w-5 h-5" />
+                                    <span className="hidden md:inline">新規追加</span>
+                                </button>
+                            </div>
+                        </div>
+                    </header>
+
+                    <div className="container mx-auto px-4 py-6 flex flex-col md:flex-row gap-6">
+                        {/* Sidebar */}
+                        <aside className={`${showMenu ? 'block' : 'hidden'} md:block w-full md:w-64 space-y-4`}>
+                            <div className="bg-gray-800 rounded-lg p-4">
+                                <div className="flex items-center justify-between mb-4">
+                                    <h2 className="text-lg font-semibold">カテゴリー</h2>
+                                    <button
+                                        onClick={() => setShowCategoryModal(true)}
+                                        className="p-1 hover:bg-gray-700 rounded transition-colors"
+                                    >
+                                        <Plus className="w-4 h-4" />
+                                    </button>
+                                </div>
+                                
+                                <div className="space-y-2">
+                                    <button
+                                        onClick={() => setSelectedCategory(null)}
+                                        className={`w-full text-left px-3 py-2 rounded-lg transition-colors ${
+                                            !selectedCategory ? 'bg-blue-600' : 'hover:bg-gray-700'
+                                        }`}
+                                    >
+                                        すべて ({snippets.length})
+                                    </button>
+                                    
+                                    {categories.map(category => {
+                                        const Icon = iconMap[category.icon] || Folder;
+                                        const count = snippets.filter(s => s.categoryId === category.id).length;
+                                        
+                                        return (
+                                            <button
+                                                key={category.id}
+                                                onClick={() => setSelectedCategory(category.id)}
+                                                className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg transition-colors ${
+                                                    selectedCategory === category.id ? 'bg-blue-600' : 'hover:bg-gray-700'
+                                                }`}
+                                            >
+                                                <div className={`w-5 h-5 rounded`} style={{ backgroundColor: category.color }}>
+                                                    <Icon className="w-5 h-5 p-0.5" />
+                                                </div>
+                                                <span>{category.name} ({count})</span>
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+
+                            {/* User info */}
+                            <div className="flex items-center gap-4 p-4 bg-gray-800 rounded-lg">
+                                <div className="flex items-center gap-2">
+                                    {user.photoURL ? (
+                                        <img 
+                                            src={user.photoURL} 
+                                            alt={user.displayName} 
+                                            className="w-8 h-8 rounded-full"
+                                        />
+                                    ) : (
+                                        <User className="w-8 h-8 text-gray-400" />
+                                    )}
+                                    <span className="text-sm text-gray-300">{user.displayName || user.email}</span>
+                                </div>
+                                <button
+                                    onClick={logOut}
+                                    className="flex items-center gap-2 px-3 py-1.5 text-sm bg-red-600 text-white rounded hover:bg-red-700 transition-colors"
+                                >
+                                    <LogOut className="w-4 h-4" />
+                                    ログアウト
+                                </button>
+                            </div>
+                        </aside>
+
+                        {/* Main content */}
+                        <main className="flex-1">
+                            <div className="bg-gray-800 rounded-lg p-6">
+                                <div className="flex items-center justify-between mb-6">
+                                    <h2 className="text-xl font-semibold">
+                                        {selectedCategory
+                                            ? categories.find(c => c.id === selectedCategory)?.name || 'すべて'
+                                            : 'すべての定型文'
+                                        }
+                                    </h2>
+                                    <span className="text-gray-400">{filteredSnippets.length} 件</span>
+                                </div>
+
+                                {filteredSnippets.length === 0 ? (
+                                    <div className="text-center py-12 text-gray-400">
+                                        <FileText className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                                        <p>定型文がありません</p>
+                                        <button
+                                            onClick={() => setShowAddModal(true)}
+                                            className="mt-4 text-blue-400 hover:text-blue-300"
+                                        >
+                                            新しい定型文を追加
+                                        </button>
+                                    </div>
+                                ) : (
+                                    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                                        {filteredSnippets.map(snippet => {
+                                            const category = categories.find(c => c.id === snippet.categoryId);
+                                            
+                                            return (
+                                                <div
+                                                    key={snippet.id}
+                                                    className="bg-gray-700 rounded-lg p-4 hover:bg-gray-600 transition-colors group"
+                                                >
+                                                    <div className="flex items-start justify-between mb-2">
+                                                        <div className="flex items-center gap-2">
+                                                            {category && (
+                                                                <div
+                                                                    className="w-5 h-5 rounded"
+                                                                    style={{ backgroundColor: category.color }}
+                                                                >
+                                                                    {iconMap[category.icon] && React.createElement(iconMap[category.icon], {
+                                                                        className: "w-5 h-5 p-0.5"
+                                                                    })}
+                                                                </div>
+                                                            )}
+                                                            <h3 className="font-semibold">{snippet.title}</h3>
+                                                            {snippet.isPinned && <Star className="w-4 h-4 text-yellow-400 fill-current" />}
+                                                        </div>
+                                                        
+                                                        <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                            <button
+                                                                onClick={() => togglePin(snippet.id)}
+                                                                className="p-1 hover:bg-gray-500 rounded"
+                                                                title="ピン留め"
+                                                            >
+                                                                <Star className={`w-4 h-4 ${snippet.isPinned ? 'text-yellow-400 fill-current' : ''}`} />
+                                                            </button>
+                                                            <button
+                                                                onClick={() => copyToClipboard(snippet.content, snippet.id)}
+                                                                className="p-1 hover:bg-gray-500 rounded"
+                                                            >
+                                                                {copiedId === snippet.id ? (
+                                                                    <Check className="w-4 h-4 text-green-400" />
+                                                                ) : (
+                                                                    <Copy className="w-4 h-4" />
+                                                                )}
+                                                            </button>
+                                                            <button
+                                                                onClick={() => deleteSnippetHandler(snippet.id)}
+                                                                className="p-1 hover:bg-gray-500 rounded"
+                                                            >
+                                                                <Trash2 className="w-4 h-4" />
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                    
+                                                    <p className="text-gray-300 text-sm line-clamp-3">{snippet.content}</p>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                )}
+                            </div>
+                        </main>
+                    </div>
+
+                    {/* Migration Modal */}
+                    {showMigrationModal && (
+                        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+                            <div className="bg-gray-800 rounded-lg p-6 max-w-md w-full">
+                                <div className="flex items-center gap-3 mb-4">
+                                    <AlertCircle className="w-6 h-6 text-yellow-400" />
+                                    <h2 className="text-xl font-semibold">ローカルデータの移行</h2>
+                                </div>
+                                <p className="text-gray-300 mb-6">
+                                    ローカルストレージに保存されたデータが見つかりました。
+                                    クラウドに移行しますか？
+                                </p>
+                                <div className="flex gap-3 justify-end">
+                                    <button
+                                        onClick={() => setShowMigrationModal(false)}
+                                        className="px-4 py-2 bg-gray-700 rounded-lg hover:bg-gray-600 transition-colors"
+                                    >
+                                        後で
+                                    </button>
+                                    <button
+                                        onClick={handleMigration}
+                                        className="px-4 py-2 bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors"
+                                    >
+                                        移行する
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Add Modal */}
+                    {showAddModal && (
+                        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+                            <div className="bg-gray-800 rounded-lg p-6 max-w-lg w-full">
+                                <h2 className="text-xl font-semibold mb-4">新規定型文</h2>
+                                
+                                <div className="space-y-4">
+                                    <div>
+                                        <label className="block text-sm font-medium mb-2">タイトル</label>
+                                        <input
+                                            type="text"
+                                            value={newSnippet.title}
+                                            onChange={(e) => setNewSnippet({ ...newSnippet, title: e.target.value })}
+                                            className="w-full px-3 py-2 bg-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                            placeholder="タイトルを入力"
+                                        />
+                                    </div>
+                                    
+                                    <div>
+                                        <label className="block text-sm font-medium mb-2">カテゴリー</label>
+                                        <select
+                                            value={newSnippet.categoryId || selectedCategory || categories[0]?.id || ''}
+                                            onChange={(e) => setNewSnippet({ ...newSnippet, categoryId: e.target.value })}
+                                            className="w-full px-3 py-2 bg-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        >
+                                            {categories.map(category => (
+                                                <option key={category.id} value={category.id}>
+                                                    {category.name}
+                                                </option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                    
+                                    <div>
+                                        <label className="block text-sm font-medium mb-2">内容</label>
+                                        <textarea
+                                            value={newSnippet.content}
+                                            onChange={(e) => setNewSnippet({ ...newSnippet, content: e.target.value })}
+                                            className="w-full px-3 py-2 bg-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 h-32"
+                                            placeholder="定型文の内容を入力"
+                                        />
+                                    </div>
+                                </div>
+                                
+                                <div className="flex gap-3 justify-end mt-6">
+                                    <button
+                                        onClick={() => {
+                                            setShowAddModal(false);
+                                            setNewSnippet({ title: '', content: '', categoryId: null });
+                                        }}
+                                        className="px-4 py-2 bg-gray-700 rounded-lg hover:bg-gray-600 transition-colors"
+                                    >
+                                        キャンセル
+                                    </button>
+                                    <button
+                                        onClick={addSnippet}
+                                        className="px-4 py-2 bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors"
+                                    >
+                                        追加
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
