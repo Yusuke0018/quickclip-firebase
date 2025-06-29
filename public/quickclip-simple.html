@@ -152,9 +152,8 @@
             );
         };
 
-        // Render the app
-        const root = ReactDOM.createRoot(document.getElementById('root'));
-        root.render(<App />);
+        // Render the app (React 17 compatible)
+        ReactDOM.render(<App />, document.getElementById('root'));
     </script>
 </body>
 </html>
