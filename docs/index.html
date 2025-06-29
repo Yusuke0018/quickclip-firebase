@@ -117,9 +117,11 @@
             opacity: 1;
         }
         
-        .category-item:hover {
-            background-color: #f0f0f0;
-            transform: translateX(4px);
+        @media (hover: hover) {
+            .category-item:hover {
+                background-color: #f0f0f0;
+                transform: translateX(4px);
+            }
         }
         
         .category-item.active {
@@ -162,6 +164,7 @@
             position: relative;
             border: 1px solid #e5e5e5;
             cursor: pointer;
+            animation: fadeIn 0.3s ease-out;
         }
         
         @media (max-width: 768px) {
@@ -171,20 +174,24 @@
             }
         }
         
-        .snippet-card:hover {
-            background-color: #f0f0f0;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.08);
-            transform: translateY(-2px);
+        @media (hover: hover) {
+            .snippet-card:hover {
+                background-color: #f0f0f0;
+                box-shadow: 0 4px 8px rgba(0, 0, 0, 0.08);
+                transform: translateY(-2px);
+            }
         }
         
-        .snippet-card:hover .snippet-actions {
-            opacity: 1;
-        }
-        
-        /* コピーボタンを目立たせる */
-        .snippet-card:hover .copy-btn {
-            background-color: #2563eb;
-            color: white;
+        @media (hover: hover) {
+            .snippet-card:hover .snippet-actions {
+                opacity: 1;
+            }
+            
+            /* コピーボタンを目立たせる */
+            .snippet-card:hover .copy-btn {
+                background-color: #2563eb;
+                color: white;
+            }
         }
         
         .snippet-title {
@@ -424,10 +431,6 @@
             }
         }
         
-        .snippet-card {
-            animation: fadeIn 0.3s ease-out;
-        }
-        
         /* Loading state */
         .loading {
             display: flex;
@@ -587,6 +590,21 @@
         
         .mobile-only {
             display: none;
+        }
+        
+        /* Disable animations on mobile for performance */
+        @media (max-width: 768px) {
+            .snippet-card {
+                animation: none !important;
+            }
+            
+            .category-item {
+                transition: none !important;
+            }
+            
+            .btn {
+                transition: none !important;
+            }
         }
         
         /* Touch-friendly sizes */
@@ -758,25 +776,27 @@
             { name: 'スタッフ連絡', icon: '👥', color: '#f97316', order: 4 }
         ];
 
-        // Keyboard shortcuts
-        document.addEventListener('keydown', (e) => {
-            // Ctrl/Cmd + K で検索にフォーカス
-            if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
-                e.preventDefault();
-                const searchInput = document.querySelector('input[type="search"]');
-                if (searchInput) searchInput.focus();
-            }
-            // Ctrl/Cmd + N で新規追加
-            if ((e.ctrlKey || e.metaKey) && e.key === 'n') {
-                e.preventDefault();
-                if (currentUser) openModal();
-            }
-            // Esc でモーダルを閉じる
-            if (e.key === 'Escape') {
-                closeModal();
-                closeCategoryModal();
-            }
-        });
+        // Keyboard shortcuts (PC only)
+        if (window.innerWidth > 768) {
+            document.addEventListener('keydown', (e) => {
+                // Ctrl/Cmd + K で検索にフォーカス
+                if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+                    e.preventDefault();
+                    const searchInput = document.querySelector('input[type="search"]');
+                    if (searchInput) searchInput.focus();
+                }
+                // Ctrl/Cmd + N で新規追加
+                if ((e.ctrlKey || e.metaKey) && e.key === 'n') {
+                    e.preventDefault();
+                    if (currentUser) openModal();
+                }
+                // Esc でモーダルを閉じる
+                if (e.key === 'Escape') {
+                    closeModal();
+                    closeCategoryModal();
+                }
+            });
+        }
 
         // Auth state listener
         auth.onAuthStateChanged(async (user) => {
