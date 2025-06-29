@@ -741,6 +741,7 @@
     </div>
 
     <script>
+        document.addEventListener('DOMContentLoaded', () => {
         // Firebase configuration
         const firebaseConfig = {
             apiKey: "AIzaSyDjrzvuPGmNrQuqzBnN_y5xDStCU-y5HlM",
@@ -776,26 +777,28 @@
             { name: 'スタッフ連絡', icon: '👥', color: '#f97316', order: 4 }
         ];
 
-        // Keyboard shortcuts (PC only)
-        if (window.innerWidth > 768) {
-            document.addEventListener('keydown', (e) => {
-                // Ctrl/Cmd + K で検索にフォーカス
-                if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
-                    e.preventDefault();
-                    const searchInput = document.querySelector('input[type="search"]');
-                    if (searchInput) searchInput.focus();
-                }
-                // Ctrl/Cmd + N で新規追加
-                if ((e.ctrlKey || e.metaKey) && e.key === 'n') {
-                    e.preventDefault();
-                    if (currentUser) openModal();
-                }
-                // Esc でモーダルを閉じる
-                if (e.key === 'Escape') {
-                    closeModal();
-                    closeCategoryModal();
-                }
-            });
+        // Keyboard shortcuts will be initialized after functions are defined
+        function initKeyboardShortcuts() {
+            if (window.innerWidth > 768) {
+                document.addEventListener('keydown', (e) => {
+                    // Ctrl/Cmd + K で検索にフォーカス
+                    if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+                        e.preventDefault();
+                        const searchInput = document.querySelector('input[type="search"]');
+                        if (searchInput) searchInput.focus();
+                    }
+                    // Ctrl/Cmd + N で新規追加
+                    if ((e.ctrlKey || e.metaKey) && e.key === 'n') {
+                        e.preventDefault();
+                        if (currentUser) openModal();
+                    }
+                    // Esc でモーダルを閉じる
+                    if (e.key === 'Escape') {
+                        closeModal();
+                        closeCategoryModal();
+                    }
+                });
+            }
         }
 
         // Auth state listener
@@ -1433,6 +1436,11 @@
                     });
             }
         }
+        
+        // Initialize keyboard shortcuts after all functions are defined
+        initKeyboardShortcuts();
+        
+        }); // DOMContentLoaded
     </script>
 </body>
 </html>
