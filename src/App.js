@@ -68,7 +68,7 @@ const App = () => {
       setSnippets(snippetsData);
     } catch (error) {
       console.error('Error loading user data:', error);
-      alert('���n��k1WW~W_');
+      alert('データの読み込みに失敗しました');
     }
   };
 
@@ -79,10 +79,10 @@ const App = () => {
       await migrateFromLocalStorage(user.uid);
       await loadUserData(user.uid);
       setShowMigrationModal(false);
-      alert('��������c8k�LW~W_');
+      alert('ローカルデータを正常に移行しました');
     } catch (error) {
       console.error('Migration error:', error);
-      alert('����Lk1WW~W_');
+      alert('データ移行に失敗しました');
     }
   };
 
@@ -100,7 +100,7 @@ const App = () => {
       URL.revokeObjectURL(url);
     } catch (error) {
       console.error('Export error:', error);
-      alert('������k1WW~W_');
+      alert('エクスポートに失敗しました');
     }
   };
 
@@ -115,10 +115,10 @@ const App = () => {
       const data = JSON.parse(text);
       await importUserData(user.uid, data);
       await loadUserData(user.uid);
-      alert('����c8k�����W~W_');
+      alert('データを正常にインポートしました');
     } catch (error) {
       console.error('Import error:', error);
-      alert('�����k1WW~W_');
+      alert('インポートに失敗しました');
     }
   };
 
@@ -127,8 +127,8 @@ const App = () => {
       setCopiedId(id);
       setTimeout(() => setCopiedId(null), 2000);
     }).catch(err => {
-      console.error('���k1W:', err);
-      alert('���k1WW~W_');
+      console.error('コピーに失敗:', err);
+      alert('コピーに失敗しました');
     });
   };
 
@@ -148,7 +148,7 @@ const App = () => {
       setShowCategoryModal(false);
     } catch (error) {
       console.error('Error adding category:', error);
-      alert('�ƴ��n��k1WW~W_');
+      alert('カテゴリーの追加に失敗しました');
     }
   };
 
@@ -163,14 +163,14 @@ const App = () => {
       setShowEditCategoryModal(false);
     } catch (error) {
       console.error('Error editing category:', error);
-      alert('�ƴ��n��k1WW~W_');
+      alert('カテゴリーの編集に失敗しました');
     }
   };
 
   const deleteCategoryHandler = async (categoryId) => {
     if (!user) return;
     
-    if (!confirm('Sn�ƴ���JdW~YK�#Y�����JdU�~Y')) return;
+    if (!confirm('このカテゴリーを削除しますか？関連する定型文も削除されます。')) return;
 
     try {
       // Delete category
@@ -186,7 +186,7 @@ const App = () => {
       }
     } catch (error) {
       console.error('Error deleting category:', error);
-      alert('�ƴ��nJdk1WW~W_');
+      alert('カテゴリーの削除に失敗しました');
     }
   };
 
@@ -207,7 +207,7 @@ const App = () => {
       setShowAddModal(false);
     } catch (error) {
       console.error('Error adding snippet:', error);
-      alert('���n��k1WW~W_');
+      alert('定型文の追加に失敗しました');
     }
   };
 
@@ -222,21 +222,21 @@ const App = () => {
       setShowEditModal(false);
     } catch (error) {
       console.error('Error editing snippet:', error);
-      alert('���n��k1WW~W_');
+      alert('定型文の編集に失敗しました');
     }
   };
 
   const deleteSnippetHandler = async (snippetId) => {
     if (!user) return;
     
-    if (!confirm('Sn����JdW~YK')) return;
+    if (!confirm('この定型文を削除しますか？')) return;
 
     try {
       await deleteSnippet(user.uid, snippetId);
       await loadUserData(user.uid);
     } catch (error) {
       console.error('Error deleting snippet:', error);
-      alert('���nJdk1WW~W_');
+      alert('定型文の削除に失敗しました');
     }
   };
 
@@ -251,7 +251,7 @@ const App = () => {
       await loadUserData(user.uid);
     } catch (error) {
       console.error('Error toggling pin:', error);
-      alert('��Y�n��Hk1WW~W_');
+      alert('ピン留めの切り替えに失敗しました');
     }
   };
 
@@ -277,7 +277,7 @@ const App = () => {
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-900 flex items-center justify-center">
-        <div className="text-white">��-...</div>
+        <div className="text-white">読み込み中...</div>
       </div>
     );
   }
@@ -306,7 +306,7 @@ const App = () => {
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
               <input
                 type="text"
-                placeholder=""..."
+                placeholder="検索..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="pl-10 pr-4 py-2 bg-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 w-64"
@@ -317,12 +317,12 @@ const App = () => {
               <button
                 onClick={handleExport}
                 className="p-2 hover:bg-gray-700 rounded-lg transition-colors"
-                title="������"
+                title="エクスポート"
               >
                 <Download className="w-5 h-5" />
               </button>
               
-              <label className="p-2 hover:bg-gray-700 rounded-lg transition-colors cursor-pointer" title="�����">
+              <label className="p-2 hover:bg-gray-700 rounded-lg transition-colors cursor-pointer" title="インポート">
                 <Upload className="w-5 h-5" />
                 <input
                   type="file"
@@ -337,7 +337,7 @@ const App = () => {
                 className="bg-blue-600 px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
               >
                 <Plus className="w-5 h-5" />
-                <span className="hidden md:inline">����</span>
+                <span className="hidden md:inline">新規追加</span>
               </button>
             </div>
           </div>
@@ -349,7 +349,7 @@ const App = () => {
         <aside className={`${showMenu ? 'block' : 'hidden'} md:block w-full md:w-64 space-y-4`}>
           <div className="bg-gray-800 rounded-lg p-4">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold">�ƴ��</h2>
+              <h2 className="text-lg font-semibold">カテゴリー</h2>
               <button
                 onClick={() => setShowCategoryModal(true)}
                 className="p-1 hover:bg-gray-700 rounded transition-colors"
@@ -365,7 +365,7 @@ const App = () => {
                   !selectedCategory ? 'bg-blue-600' : 'hover:bg-gray-700'
                 }`}
               >
-                Yyf ({snippets.length})
+                すべて ({snippets.length})
               </button>
               
               {categories.map(category => {
@@ -426,22 +426,22 @@ const App = () => {
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-xl font-semibold">
                 {selectedCategory
-                  ? categories.find(c => c.id === selectedCategory)?.name || 'Yyf'
-                  : 'Yyfn���'
+                  ? categories.find(c => c.id === selectedCategory)?.name || 'すべて'
+                  : 'すべての定型文'
                 }
               </h2>
-              <span className="text-gray-400">{filteredSnippets.length} �</span>
+              <span className="text-gray-400">{filteredSnippets.length} 件</span>
             </div>
 
             {filteredSnippets.length === 0 ? (
               <div className="text-center py-12 text-gray-400">
                 <FileText className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                <p>���LB�~[�</p>
+                <p>定型文がありません</p>
                 <button
                   onClick={() => setShowAddModal(true)}
                   className="mt-4 text-blue-400 hover:text-blue-300"
                 >
-                  �WD������
+                  新しい定型文を追加
                 </button>
               </div>
             ) : (
@@ -474,7 +474,7 @@ const App = () => {
                           <button
                             onClick={() => togglePin(snippet.id)}
                             className="p-1 hover:bg-gray-500 rounded"
-                            title="��Y�"
+                            title="ピン留め"
                           >
                             <Star className={`w-4 h-4 ${snippet.isPinned ? 'text-yellow-400 fill-current' : ''}`} />
                           </button>
@@ -522,24 +522,24 @@ const App = () => {
           <div className="bg-gray-800 rounded-lg p-6 max-w-md w-full">
             <div className="flex items-center gap-3 mb-4">
               <AlertCircle className="w-6 h-6 text-yellow-400" />
-              <h2 className="text-xl font-semibold">�������n�L</h2>
+              <h2 className="text-xl font-semibold">ローカルデータの移行</h2>
             </div>
             <p className="text-gray-300 mb-6">
-              ��������k�XU�_���L�dK�~W_
-              ���k�LW~YK
+              ローカルストレージに保存されたデータが見つかりました。
+              クラウドに移行しますか？
             </p>
             <div className="flex gap-3 justify-end">
               <button
                 onClick={() => setShowMigrationModal(false)}
                 className="px-4 py-2 bg-gray-700 rounded-lg hover:bg-gray-600 transition-colors"
               >
-                �g
+                後で
               </button>
               <button
                 onClick={handleMigration}
                 className="px-4 py-2 bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors"
               >
-                �LY�
+                移行する
               </button>
             </div>
           </div>
@@ -550,22 +550,22 @@ const App = () => {
       {showAddModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
           <div className="bg-gray-800 rounded-lg p-6 max-w-lg w-full">
-            <h2 className="text-xl font-semibold mb-4">�����</h2>
+            <h2 className="text-xl font-semibold mb-4">新規定型文</h2>
             
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium mb-2">����</label>
+                <label className="block text-sm font-medium mb-2">タイトル</label>
                 <input
                   type="text"
                   value={newSnippet.title}
                   onChange={(e) => setNewSnippet({ ...newSnippet, title: e.target.value })}
                   className="w-full px-3 py-2 bg-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="����e�"
+                  placeholder="タイトルを入力"
                 />
               </div>
               
               <div>
-                <label className="block text-sm font-medium mb-2">�ƴ��</label>
+                <label className="block text-sm font-medium mb-2">カテゴリー</label>
                 <select
                   value={newSnippet.categoryId || selectedCategory || categories[0]?.id || ''}
                   onChange={(e) => setNewSnippet({ ...newSnippet, categoryId: e.target.value })}
@@ -580,12 +580,12 @@ const App = () => {
               </div>
               
               <div>
-                <label className="block text-sm font-medium mb-2">��</label>
+                <label className="block text-sm font-medium mb-2">内容</label>
                 <textarea
                   value={newSnippet.content}
                   onChange={(e) => setNewSnippet({ ...newSnippet, content: e.target.value })}
                   className="w-full px-3 py-2 bg-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 h-32"
-                  placeholder="���n���e�"
+                  placeholder="定型文の内容を入力"
                 />
               </div>
             </div>
@@ -598,13 +598,13 @@ const App = () => {
                 }}
                 className="px-4 py-2 bg-gray-700 rounded-lg hover:bg-gray-600 transition-colors"
               >
-                ����
+                キャンセル
               </button>
               <button
                 onClick={addSnippet}
                 className="px-4 py-2 bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors"
               >
-                ��
+                追加
               </button>
             </div>
           </div>
@@ -615,11 +615,11 @@ const App = () => {
       {showEditModal && editingSnippet && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
           <div className="bg-gray-800 rounded-lg p-6 max-w-lg w-full">
-            <h2 className="text-xl font-semibold mb-4">������</h2>
+            <h2 className="text-xl font-semibold mb-4">定型文を編集</h2>
             
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium mb-2">����</label>
+                <label className="block text-sm font-medium mb-2">タイトル</label>
                 <input
                   type="text"
                   value={editingSnippet.title}
@@ -629,7 +629,7 @@ const App = () => {
               </div>
               
               <div>
-                <label className="block text-sm font-medium mb-2">�ƴ��</label>
+                <label className="block text-sm font-medium mb-2">カテゴリー</label>
                 <select
                   value={editingSnippet.categoryId}
                   onChange={(e) => setEditingSnippet({ ...editingSnippet, categoryId: e.target.value })}
@@ -644,7 +644,7 @@ const App = () => {
               </div>
               
               <div>
-                <label className="block text-sm font-medium mb-2">��</label>
+                <label className="block text-sm font-medium mb-2">内容</label>
                 <textarea
                   value={editingSnippet.content}
                   onChange={(e) => setEditingSnippet({ ...editingSnippet, content: e.target.value })}
@@ -661,13 +661,13 @@ const App = () => {
                 }}
                 className="px-4 py-2 bg-gray-700 rounded-lg hover:bg-gray-600 transition-colors"
               >
-                ����
+                キャンセル
               </button>
               <button
                 onClick={editSnippet}
                 className="px-4 py-2 bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors"
               >
-                �X
+                保存
               </button>
             </div>
           </div>
@@ -678,22 +678,22 @@ const App = () => {
       {showCategoryModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
           <div className="bg-gray-800 rounded-lg p-6 max-w-md w-full">
-            <h2 className="text-xl font-semibold mb-4">���ƴ��</h2>
+            <h2 className="text-xl font-semibold mb-4">新規カテゴリー</h2>
             
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium mb-2">�ƴ��</label>
+                <label className="block text-sm font-medium mb-2">カテゴリー名</label>
                 <input
                   type="text"
                   value={newCategory.name}
                   onChange={(e) => setNewCategory({ ...newCategory, name: e.target.value })}
                   className="w-full px-3 py-2 bg-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="�ƴ���e�"
+                  placeholder="カテゴリー名を入力"
                 />
               </div>
               
               <div>
-                <label className="block text-sm font-medium mb-2">����</label>
+                <label className="block text-sm font-medium mb-2">アイコン</label>
                 <div className="grid grid-cols-6 gap-2">
                   {Object.keys(iconMap).map(iconName => {
                     const Icon = iconMap[iconName];
@@ -715,7 +715,7 @@ const App = () => {
               </div>
               
               <div>
-                <label className="block text-sm font-medium mb-2">r</label>
+                <label className="block text-sm font-medium mb-2">色</label>
                 <div className="grid grid-cols-5 gap-2">
                   {colorOptions.map(color => (
                     <button
@@ -741,13 +741,13 @@ const App = () => {
                 }}
                 className="px-4 py-2 bg-gray-700 rounded-lg hover:bg-gray-600 transition-colors"
               >
-                ����
+                キャンセル
               </button>
               <button
                 onClick={addCategory}
                 className="px-4 py-2 bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors"
               >
-                ��
+                追加
               </button>
             </div>
           </div>
@@ -758,11 +758,11 @@ const App = () => {
       {showEditCategoryModal && editingCategory && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
           <div className="bg-gray-800 rounded-lg p-6 max-w-md w-full">
-            <h2 className="text-xl font-semibold mb-4">�ƴ�����</h2>
+            <h2 className="text-xl font-semibold mb-4">カテゴリーを編集</h2>
             
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium mb-2">�ƴ��</label>
+                <label className="block text-sm font-medium mb-2">カテゴリー名</label>
                 <input
                   type="text"
                   value={editingCategory.name}
@@ -772,7 +772,7 @@ const App = () => {
               </div>
               
               <div>
-                <label className="block text-sm font-medium mb-2">����</label>
+                <label className="block text-sm font-medium mb-2">アイコン</label>
                 <div className="grid grid-cols-6 gap-2">
                   {Object.keys(iconMap).map(iconName => {
                     const Icon = iconMap[iconName];
@@ -794,7 +794,7 @@ const App = () => {
               </div>
               
               <div>
-                <label className="block text-sm font-medium mb-2">r</label>
+                <label className="block text-sm font-medium mb-2">色</label>
                 <div className="grid grid-cols-5 gap-2">
                   {colorOptions.map(color => (
                     <button
@@ -820,13 +820,13 @@ const App = () => {
                 }}
                 className="px-4 py-2 bg-gray-700 rounded-lg hover:bg-gray-600 transition-colors"
               >
-                ����
+                キャンセル
               </button>
               <button
                 onClick={editCategory}
                 className="px-4 py-2 bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors"
               >
-                �X
+                保存
               </button>
             </div>
           </div>
