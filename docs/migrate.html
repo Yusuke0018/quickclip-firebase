@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QuickClip データ移行ツール</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+        }
+        .data-section {
+            margin: 20px 0;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 5px;
+        }
+        .button {
+            background: #2563eb;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        .button:hover {
+            background: #1d4ed8;
+        }
+        .button.danger {
+            background: #dc2626;
+        }
+        .button.danger:hover {
+            background: #b91c1c;
+        }
+        .status {
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        .status.success {
+            background: #d1fae5;
+            color: #065f46;
+        }
+        .status.error {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+        .status.info {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+        pre {
+            background: #1f2937;
+            color: #e5e7eb;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+        .data-summary {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin: 20px 0;
+        }
+        .summary-card {
+            background: #f3f4f6;
+            padding: 15px;
+            border-radius: 5px;
+            text-align: center;
+        }
+        .summary-card h3 {
+            margin: 0 0 10px 0;
+            color: #374151;
+        }
+        .summary-card .count {
+            font-size: 2em;
+            font-weight: bold;
+            color: #2563eb;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>QuickClip データ移行ツール</h1>
+        
+        <div id="status"></div>
+        
+        <div class="data-section">
+            <h2>ローカルストレージのデータ</h2>
+            <div id="dataSummary" class="data-summary"></div>
+            <div id="dataPreview" style="display: none;">
+                <h3>データプレビュー（JSON形式）</h3>
+                <pre id="jsonPreview"></pre>
+            </div>
+        </div>
+        
+        <div class="data-section">
+            <h2>操作</h2>
+            <button class="button" onclick="checkLocalData()">ローカルデータを確認</button>
+            <button class="button" onclick="exportData()">データをエクスポート（JSON）</button>
+            <button class="button" onclick="showInstructions()">移行手順を表示</button>
+            <button class="button danger" onclick="clearLocalData()">ローカルデータを削除</button>
+        </div>
+        
+        <div id="instructions" class="data-section" style="display: none;">
+            <h2>移行手順</h2>
+            <ol>
+                <li>上記の「データをエクスポート」ボタンをクリックしてJSONファイルをダウンロード</li>
+                <li><a href="https://quickclip-firebase.vercel.app" target="_blank">新しいQuickClip</a>を開く</li>
+                <li>Googleアカウントでログイン</li>
+                <li>自動移行プロンプトが表示されたら「OK」をクリック</li>
+                <li>または、エクスポートしたJSONファイルを手動でインポート</li>
+            </ol>
+        </div>
+    </div>
+
+    <script>
+        function showStatus(message, type = 'info') {
+            const statusDiv = document.getElementById('status');
+            statusDiv.className = `status ${type}`;
+            statusDiv.textContent = message;
+        }
+
+        function checkLocalData() {
+            try {
+                const categories = JSON.parse(localStorage.getItem('quickclip_categories') || '[]');
+                const snippets = JSON.parse(localStorage.getItem('quickclip_snippets') || '[]');
+                
+                if (categories.length === 0 && snippets.length === 0) {
+                    showStatus('ローカルストレージにデータが見つかりません。', 'error');
+                    document.getElementById('dataSummary').innerHTML = '<p>データが見つかりません</p>';
+                    return;
+                }
+                
+                // サマリー表示
+                document.getElementById('dataSummary').innerHTML = `
+                    <div class="summary-card">
+                        <h3>カテゴリー</h3>
+                        <div class="count">${categories.length}</div>
+                    </div>
+                    <div class="summary-card">
+                        <h3>定型文</h3>
+                        <div class="count">${snippets.length}</div>
+                    </div>
+                `;
+                
+                // データプレビュー
+                const data = { categories, snippets };
+                document.getElementById('jsonPreview').textContent = JSON.stringify(data, null, 2);
+                document.getElementById('dataPreview').style.display = 'block';
+                
+                showStatus(`${categories.length}個のカテゴリーと${snippets.length}個の定型文が見つかりました。`, 'success');
+                
+                // カテゴリー詳細
+                console.log('カテゴリー:', categories);
+                console.log('定型文:', snippets);
+                
+            } catch (error) {
+                showStatus('データの読み取り中にエラーが発生しました: ' + error.message, 'error');
+            }
+        }
+
+        function exportData() {
+            try {
+                const categories = JSON.parse(localStorage.getItem('quickclip_categories') || '[]');
+                const snippets = JSON.parse(localStorage.getItem('quickclip_snippets') || '[]');
+                
+                if (categories.length === 0 && snippets.length === 0) {
+                    showStatus('エクスポートするデータがありません。', 'error');
+                    return;
+                }
+                
+                const exportData = {
+                    version: '1.0',
+                    exportedAt: new Date().toISOString(),
+                    categories,
+                    snippets
+                };
+                
+                const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `quickclip-backup-${new Date().toISOString().split('T')[0]}.json`;
+                a.click();
+                URL.revokeObjectURL(url);
+                
+                showStatus('データをエクスポートしました。', 'success');
+            } catch (error) {
+                showStatus('エクスポート中にエラーが発生しました: ' + error.message, 'error');
+            }
+        }
+
+        function showInstructions() {
+            document.getElementById('instructions').style.display = 'block';
+            showStatus('移行手順を表示しました。', 'info');
+        }
+
+        function clearLocalData() {
+            if (!confirm('本当にローカルデータを削除しますか？この操作は取り消せません。')) {
+                return;
+            }
+            
+            if (!confirm('念のためもう一度確認します。バックアップは取りましたか？')) {
+                return;
+            }
+            
+            try {
+                localStorage.removeItem('quickclip_categories');
+                localStorage.removeItem('quickclip_snippets');
+                localStorage.removeItem('quickclip_darkmode');
+                localStorage.removeItem('quickclip_visited');
+                
+                showStatus('ローカルデータを削除しました。', 'success');
+                checkLocalData();
+            } catch (error) {
+                showStatus('削除中にエラーが発生しました: ' + error.message, 'error');
+            }
+        }
+
+        // ページ読み込み時に自動でチェック
+        window.onload = () => {
+            checkLocalData();
+        };
+    </script>
+</body>
+</html>
