@@ -1055,8 +1055,7 @@
                                                 <span>${snippet.title}</span>
                                                 ${snippet.isPinned ? '<span class="pin-icon">⭐</span>' : ''}
                                             </div>
-                                            <div class="snippet-content">${snippet.content.replace(/
-/g, '\n')}</div>
+                                            <div class="snippet-content">${snippet.content}</div>
                                             <div class="snippet-actions">
                                                 <button class="btn-icon" onclick="togglePin('${snippet.id}')" title="ピン留め">
                                                     ${snippet.isPinned ? '⭐' : '☆'}
