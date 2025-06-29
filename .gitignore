@@ -19,3 +19,11 @@ yarn-error.log*
 # Firebase
 .firebase/
 firebase-debug.log
+
+# Editor
+.vscode/
+.idea/
+
+# Temporary files
+*.log
+src/.!*
