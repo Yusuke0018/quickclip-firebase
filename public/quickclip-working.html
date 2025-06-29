@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QuickClip Firebase - スマート定型文管理</title>
+    <script crossorigin src="https://unpkg.com/react@17/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@17/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Firebase v9 compatibility mode -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    
+    <style>
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #1f2937; }
+        ::-webkit-scrollbar-thumb { background: #4b5563; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #6b7280; }
+    </style>
+</head>
+<body class="bg-gray-900">
+    <div id="root"></div>
+    
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+        
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyDjrzvuPGmNrQuqzBnN_y5xDStCU-y5HlM",
+            authDomain: "quickclip-4446c.firebaseapp.com",
+            projectId: "quickclip-4446c",
+            storageBucket: "quickclip-4446c.firebasestorage.app",
+            messagingSenderId: "31602504581",
+            appId: "1:31602504581:web:c80fe6bf2a0e60c281caec",
+            measurementId: "G-H0GXNRP5TW"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+        const googleProvider = new firebase.auth.GoogleAuthProvider();
+
+        const App = () => {
+            const [user, setUser] = useState(null);
+            const [loading, setLoading] = useState(true);
+            const [error, setError] = useState(null);
+            const [categories, setCategories] = useState([]);
+            const [snippets, setSnippets] = useState([]);
+
+            useEffect(() => {
+                const unsubscribe = auth.onAuthStateChanged(async (user) => {
+                    setUser(user);
+                    if (user) {
+                        console.log('User logged in:', user.email);
+                        await loadUserData(user.uid);
+                    }
+                    setLoading(false);
+                });
+
+                return unsubscribe;
+            }, []);
+
+            const loadUserData = async (userId) => {
+                try {
+                    // Load categories
+                    const categoriesRef = db.collection('users').doc(userId).collection('categories');
+                    const categoriesSnapshot = await categoriesRef.orderBy('order').get();
+                    const categoriesData = categoriesSnapshot.docs.map(doc => ({
+                        id: doc.id,
+                        ...doc.data()
+                    }));
+                    setCategories(categoriesData);
+
+                    // Load snippets
+                    const snippetsRef = db.collection('users').doc(userId).collection('snippets');
+                    const snippetsSnapshot = await snippetsRef.orderBy('createdAt', 'desc').get();
+                    const snippetsData = snippetsSnapshot.docs.map(doc => ({
+                        id: doc.id,
+                        ...doc.data()
+                    }));
+                    setSnippets(snippetsData);
+                } catch (error) {
+                    console.error('Error loading data:', error);
+                }
+            };
+
+            const signInWithGoogle = async () => {
+                try {
+                    setError(null);
+                    const result = await auth.signInWithPopup(googleProvider);
+                    console.log('Login successful:', result.user.email);
+                } catch (error) {
+                    console.error('Login error:', error);
+                    setError(error.message);
+                }
+            };
+
+            const signOut = async () => {
+                try {
+                    await auth.signOut();
+                    console.log('Signed out successfully');
+                } catch (error) {
+                    console.error('Sign out error:', error);
+                }
+            };
+
+            if (loading) {
+                return (
+                    <div className="min-h-screen bg-gray-900 flex items-center justify-center">
+                        <div className="text-white">読み込み中...</div>
+                    </div>
+                );
+            }
+
+            if (!user) {
+                return (
+                    <div className="min-h-screen bg-gray-900 flex items-center justify-center">
+                        <div className="bg-gray-800 p-8 rounded-lg shadow-lg max-w-md w-full">
+                            <h1 className="text-3xl font-bold text-white mb-6 text-center">QuickClip</h1>
+                            <p className="text-gray-400 text-center mb-8">
+                                定型文をクラウドで管理
+                            </p>
+                            {error && (
+                                <div className="bg-red-600 text-white p-3 rounded mb-4 text-sm">
+                                    エラー: {error}
+                                </div>
+                            )}
+                            <button
+                                onClick={signInWithGoogle}
+                                className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg transition duration-200"
+                            >
+                                Googleでログイン
+                            </button>
+                        </div>
+                    </div>
+                );
+            }
+
+            return (
+                <div className="min-h-screen bg-gray-900 text-white">
+                    <header className="bg-gray-800 shadow-lg">
+                        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
+                            <h1 className="text-2xl font-bold">QuickClip</h1>
+                            <div className="flex items-center gap-4">
+                                <span className="text-sm text-gray-300">{user.email}</span>
+                                <button
+                                    onClick={signOut}
+                                    className="bg-red-600 hover:bg-red-700 px-3 py-1 rounded text-sm transition"
+                                >
+                                    ログアウト
+                                </button>
+                            </div>
+                        </div>
+                    </header>
+                    
+                    <main className="container mx-auto px-4 py-8">
+                        <div className="bg-gray-800 rounded-lg p-6">
+                            <h2 className="text-xl font-semibold mb-4">ようこそ、{user.displayName || user.email}さん</h2>
+                            
+                            <div className="grid gap-4 mt-6">
+                                <div className="bg-gray-700 p-4 rounded">
+                                    <h3 className="font-semibold mb-2">カテゴリー数</h3>
+                                    <p className="text-2xl">{categories.length}</p>
+                                </div>
+                                
+                                <div className="bg-gray-700 p-4 rounded">
+                                    <h3 className="font-semibold mb-2">定型文数</h3>
+                                    <p className="text-2xl">{snippets.length}</p>
+                                </div>
+                            </div>
+                            
+                            {snippets.length > 0 && (
+                                <div className="mt-6">
+                                    <h3 className="font-semibold mb-3">最近の定型文</h3>
+                                    <div className="space-y-2">
+                                        {snippets.slice(0, 3).map(snippet => (
+                                            <div key={snippet.id} className="bg-gray-700 p-3 rounded">
+                                                <h4 className="font-medium">{snippet.title}</h4>
+                                                <p className="text-sm text-gray-400 truncate">{snippet.content}</p>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    </main>
+                </div>
+            );
+        };
+
+        // Render the app
+        ReactDOM.render(<App />, document.getElementById('root'));
+    </script>
+</body>
+</html>
