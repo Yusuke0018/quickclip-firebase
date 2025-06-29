@@ -1439,6 +1439,27 @@
         // Initialize keyboard shortcuts after all functions are defined
         initKeyboardShortcuts();
         
+        // グローバルスコープに関数を公開（HTML内のonclickから呼び出すため）
+        window.signIn = signIn;
+        window.signOut = signOut;
+        window.openModal = openModal;
+        window.closeModal = closeModal;
+        window.openCategoryModal = openCategoryModal;
+        window.closeCategoryModal = closeCategoryModal;
+        window.editCategory = editCategory;
+        window.deleteCategory = deleteCategory;
+        window.selectCategory = selectCategory;
+        window.toggleMobileMenu = toggleMobileMenu;
+        window.closeMobileMenu = closeMobileMenu;
+        window.handleSnippetClick = handleSnippetClick;
+        window.searchSnippets = searchSnippets;
+        window.togglePin = togglePin;
+        window.copyToClipboard = copyToClipboard;
+        window.editSnippet = editSnippet;
+        window.deleteSnippet = deleteSnippet;
+        window.exportData = exportData;
+        window.importData = importData;
+        
         }); // DOMContentLoaded
     </script>
 </body>
