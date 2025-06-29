@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Firebase Auth Debug</title>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+</head>
+<body>
+    <h1>Firebase認証デバッグツール</h1>
+    <button id="testAuth">Google認証をテスト</button>
+    <div id="result"></div>
+    <pre id="error" style="color: red;"></pre>
+
+    <script>
+        // Firebase設定
+        const firebaseConfig = {
+            apiKey: "AIzaSyDjrzvuPGmNrQuqzBnN_y5xDStCU-y5HlM",
+            authDomain: "quickclip-4446c.firebaseapp.com",
+            projectId: "quickclip-4446c",
+            storageBucket: "quickclip-4446c.firebasestorage.app",
+            messagingSenderId: "31602504581",
+            appId: "1:31602504581:web:c80fe6bf2a0e60c281caec",
+            measurementId: "G-H0GXNRP5TW"
+        };
+
+        // Firebaseを初期化
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const provider = new firebase.auth.GoogleAuthProvider();
+
+        document.getElementById('testAuth').addEventListener('click', async () => {
+            try {
+                const result = await auth.signInWithPopup(provider);
+                document.getElementById('result').textContent = 'ログイン成功: ' + result.user.email;
+                document.getElementById('error').textContent = '';
+            } catch (error) {
+                console.error('認証エラー:', error);
+                document.getElementById('error').textContent = `
+エラーコード: ${error.code}
+エラーメッセージ: ${error.message}
+詳細: ${JSON.stringify(error, null, 2)}
+                `;
+                document.getElementById('result').textContent = '';
+            }
+        });
+
+        // 現在の認証状態を確認
+        auth.onAuthStateChanged((user) => {
+            if (user) {
+                console.log('ログイン中:', user.email);
+            } else {
+                console.log('未ログイン');
+            }
+        });
+    </script>
+</body>
+</html>

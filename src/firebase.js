@@ -7,7 +7,7 @@ import { getAnalytics } from "firebase/analytics";
 // Your web app's Firebase configuration
 const firebaseConfig = {
   apiKey: "AIzaSyDjrzvuPGmNrQuqzBnN_y5xDStCU-y5HlM",
-  authDomain: "quickclip-4446c.firebaseapp.com",
+  authDomain: "quickclip-firebase.vercel.app",
   projectId: "quickclip-4446c",
   storageBucket: "quickclip-4446c.firebasestorage.app",
   messagingSenderId: "31602504581",
