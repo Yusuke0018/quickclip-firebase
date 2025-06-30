@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import { useDebounce } from 'use-debounce';
 import Auth from './components/Auth';
 import { onAuthChange, getCategories, getSnippets, createCategory, updateCategory, deleteCategory, createSnippet, updateSnippet, deleteSnippet, migrateFromLocalStorage, exportUserData, importUserData } from './firebase';
 import { Copy, Plus, Edit2, Trash2, Search, Menu, X, Check, Folder, Star, Hash, Key, FileText, Mail, Code, Globe, Heart, Zap, Settings, Shield, Book, Users, Calendar, DollarSign, Phone, Home, Briefcase, Award, Coffee, Music, Camera, Clock, Download, Upload, AlertCircle } from 'lucide-react';
@@ -10,6 +11,8 @@ const App = () => {
   const [snippets, setSnippets] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
+  const [debouncedSearchQuery] = useDebounce(searchQuery, 500);
+  const [isSearching, setIsSearching] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
@@ -260,11 +263,14 @@ const App = () => {
       ? snippets.filter(s => s.categoryId === selectedCategory)
       : snippets;
 
-    if (searchQuery) {
+    // 3文字以上の場合のみ検索を実行
+    if (debouncedSearchQuery && debouncedSearchQuery.length >= 3) {
+      setIsSearching(true);
       filtered = filtered.filter(s =>
-        s.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        s.content.toLowerCase().includes(searchQuery.toLowerCase())
+        s.title.toLowerCase().includes(debouncedSearchQuery.toLowerCase()) ||
+        s.content.toLowerCase().includes(debouncedSearchQuery.toLowerCase())
       );
+      setIsSearching(false);
     }
 
     return filtered.sort((a, b) => {
@@ -272,7 +278,7 @@ const App = () => {
       if (!a.isPinned && b.isPinned) return 1;
       return 0;
     });
-  }, [snippets, selectedCategory, searchQuery]);
+  }, [snippets, selectedCategory, debouncedSearchQuery]);
 
   if (loading) {
     return (
@@ -306,11 +312,16 @@ const App = () => {
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
               <input
                 type="text"
-                placeholder="検索..."
+                placeholder="検索... (3文字以上)"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="pl-10 pr-4 py-2 bg-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 w-64"
               />
+              {isSearching && (
+                <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-400"></div>
+                </div>
+              )}
             </div>
             
             <div className="flex items-center gap-2">
@@ -347,6 +358,25 @@ const App = () => {
       <div className="container mx-auto px-4 py-6 flex flex-col md:flex-row gap-6">
         {/* Sidebar */}
         <aside className={`${showMenu ? 'block' : 'hidden'} md:block w-full md:w-64 space-y-4`}>
+          {/* Mobile Search */}
+          <div className="md:hidden bg-gray-800 rounded-lg p-4">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+              <input
+                type="text"
+                placeholder="検索... (3文字以上)"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full pl-10 pr-4 py-2 bg-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+              {isSearching && (
+                <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-400"></div>
+                </div>
+              )}
+            </div>
+          </div>
+          
           <div className="bg-gray-800 rounded-lg p-4">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg font-semibold">カテゴリー</h2>
