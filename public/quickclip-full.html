@@ -1118,12 +1118,26 @@
             if (event.key === 'Enter') {
                 event.preventDefault();
                 searchQuery = event.target.value;
+                console.log('Search query:', searchQuery); // Debug log
                 renderApp();
+                // Keep focus on search input after render
+                setTimeout(() => {
+                    const searchInput = document.querySelector('input[type="search"]');
+                    if (searchInput) {
+                        searchInput.focus();
+                        searchInput.setSelectionRange(searchInput.value.length, searchInput.value.length);
+                    }
+                }, 0);
             } else if (event.key === 'Escape') {
                 event.preventDefault();
                 event.target.value = '';
                 searchQuery = '';
                 renderApp();
+                // Keep focus on search input after render
+                setTimeout(() => {
+                    const searchInput = document.querySelector('input[type="search"]');
+                    if (searchInput) searchInput.focus();
+                }, 0);
             }
         }
 
