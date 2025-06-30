@@ -1109,6 +1109,7 @@
                 sidebar.classList.toggle('mobile-active');
             }
         }
+        window.toggleMobileMenu = toggleMobileMenu;
         
         function closeMobileMenu() {
             const sidebar = document.querySelector('.sidebar');
@@ -1116,6 +1117,7 @@
                 sidebar.classList.remove('mobile-active');
             }
         }
+        window.closeMobileMenu = closeMobileMenu;
         
         function handleSnippetClick(event, snippetId) {
             // モバイルでカード全体をタップしたときにコピー
@@ -1126,12 +1128,12 @@
                 }
             }
         }
+        window.handleSnippetClick = handleSnippetClick;
         
         function handleSearchKeydown(event) {
             if (event.key === 'Enter') {
                 event.preventDefault();
                 searchQuery = event.target.value;
-                console.log('Search query:', searchQuery); // Debug log
                 renderApp();
                 // Keep focus on search input after render
                 setTimeout(() => {
@@ -1184,7 +1186,6 @@
         window.closeModal = closeModal;
 
         function editSnippet(snippetId) {
-            console.log('editSnippet called with:', snippetId);
             openModal(snippetId);
         }
         window.editSnippet = editSnippet;
@@ -1221,7 +1222,6 @@
         window.togglePin = togglePin;
 
         function copyToClipboard(text) {
-            console.log('copyToClipboard called with:', text);
             navigator.clipboard.writeText(text).then(() => {
                 showSuccess('コピーしました');
             }).catch(err => {
@@ -1312,6 +1312,7 @@
                 alert('エクスポートに失敗しました');
             }
         }
+        window.exportData = exportData;
 
         async function importData(event) {
             const file = event.target.files[0];
@@ -1366,6 +1367,7 @@
                 alert('インポートに失敗しました: ' + error.message);
             }
         }
+        window.importData = importData;
 
         // Category functions
         function openCategoryModal() {
