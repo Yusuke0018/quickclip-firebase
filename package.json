@@ -4,7 +4,7 @@
   "main": "index.js",
   "scripts": {
     "start": "webpack serve --mode development",
-    "build": "mkdir -p dist && cp public/quickclip-full.html dist/index.html",
+    "build": "webpack --mode production",
     "build:static": "mkdir -p dist && cp public/quickclip-firebase.html dist/index.html",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
