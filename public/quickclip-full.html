@@ -1100,6 +1100,7 @@
                 closeMobileMenu();
             }
         }
+        window.selectCategory = selectCategory;
         
         // Mobile menu functions
         function toggleMobileMenu() {
@@ -1374,6 +1375,7 @@
             document.getElementById('categoryColor').value = '#3b82f6';
             document.getElementById('categoryModal').classList.add('active');
         }
+        window.openCategoryModal = openCategoryModal;
         
         function editCategory(categoryId) {
             editingCategory = categories.find(c => c.id === categoryId);
@@ -1384,11 +1386,13 @@
             document.getElementById('categoryColor').value = editingCategory.color;
             document.getElementById('categoryModal').classList.add('active');
         }
+        window.editCategory = editCategory;
         
         function closeCategoryModal() {
             document.getElementById('categoryModal').classList.remove('active');
             editingCategory = null;
         }
+        window.closeCategoryModal = closeCategoryModal;
         
         async function deleteCategory() {
             if (!editingCategory) return;
@@ -1413,6 +1417,7 @@
                 alert('削除中にエラーが発生しました');
             }
         }
+        window.deleteCategory = deleteCategory;
         
         // Category form submission
         document.getElementById('categoryForm').addEventListener('submit', async (e) => {
