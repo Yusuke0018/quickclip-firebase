@@ -1261,18 +1261,18 @@
                 if (editingSnippet) {
                     // Update existing snippet
                     await db.collection('users').doc(currentUser.uid).collection('snippets').doc(editingSnippet.id).update({
-                        title,
-                        content,
-                        categoryId,
+                        title: title,
+                        content: content,
+                        categoryId: categoryId,
                         updatedAt: firebase.firestore.FieldValue.serverTimestamp()
                     });
                     showSuccess('定型文を更新しました');
                 } else {
                     // Create new snippet
                     await db.collection('users').doc(currentUser.uid).collection('snippets').add({
-                        title,
-                        content,
-                        categoryId,
+                        title: title,
+                        content: content,
+                        categoryId: categoryId,
                         isPinned: false,
                         createdAt: firebase.firestore.FieldValue.serverTimestamp()
                     });
@@ -1433,18 +1433,18 @@
                 if (editingCategory) {
                     // Update existing category
                     await db.collection('users').doc(currentUser.uid).collection('categories').doc(editingCategory.id).update({
-                        name,
-                        icon,
-                        color,
+                        name: name,
+                        icon: icon,
+                        color: color,
                         updatedAt: firebase.firestore.FieldValue.serverTimestamp()
                     });
                     showSuccess('カテゴリーを更新しました');
                 } else {
                     // Create new category
                     await db.collection('users').doc(currentUser.uid).collection('categories').add({
-                        name,
-                        icon,
-                        color,
+                        name: name,
+                        icon: icon,
+                        color: color,
                         order: categories.length,
                         createdAt: firebase.firestore.FieldValue.serverTimestamp()
                     });

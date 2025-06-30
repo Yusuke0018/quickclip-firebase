@@ -2,10 +2,13 @@ const path = require('path');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 
 module.exports = {
-  entry: './src/index.js',
+  entry: {
+    main: './src/index.js',
+    quickclip: './src/quickclip-app.js'
+  },
   output: {
     path: path.resolve(__dirname, 'dist'),
-    filename: 'bundle.js',
+    filename: '[name].bundle.js',
     clean: true,
   },
   module: {
@@ -31,7 +34,14 @@ module.exports = {
   },
   plugins: [
     new HtmlWebpackPlugin({
-      template: './public/index.html'
+      template: './public/index.html',
+      chunks: ['main'],
+      filename: 'react-app.html'
+    }),
+    new HtmlWebpackPlugin({
+      template: './public/quickclip-template.html',
+      chunks: ['quickclip'],
+      filename: 'index.html'
     })
   ],
   devServer: {
