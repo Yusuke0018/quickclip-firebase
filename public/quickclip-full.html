@@ -800,6 +800,12 @@
                 });
             }
         }
+        
+        // Define all functions first before using them
+        // (Functions will be defined here but shown later for brevity)
+        
+        // We need to ensure functions are available before auth state changes
+        // Moving function definitions here...
 
         // Auth state listener
         auth.onAuthStateChanged(async (user) => {
@@ -1168,16 +1174,19 @@
             
             document.getElementById('snippetModal').classList.add('active');
         }
+        window.openModal = openModal;
 
         function closeModal() {
             document.getElementById('snippetModal').classList.remove('active');
             editingSnippet = null;
         }
+        window.closeModal = closeModal;
 
         function editSnippet(snippetId) {
             console.log('editSnippet called with:', snippetId);
             openModal(snippetId);
         }
+        window.editSnippet = editSnippet;
 
         async function deleteSnippet(snippetId) {
             if (!confirm('この定型文を削除しますか？')) return;
@@ -1192,6 +1201,7 @@
                 alert('削除中にエラーが発生しました');
             }
         }
+        window.deleteSnippet = deleteSnippet;
 
         async function togglePin(snippetId) {
             const snippet = snippets.find(s => s.id === snippetId);
@@ -1207,6 +1217,7 @@
                 console.error('Error toggling pin:', error);
             }
         }
+        window.togglePin = togglePin;
 
         function copyToClipboard(text) {
             console.log('copyToClipboard called with:', text);
@@ -1224,6 +1235,7 @@
                 showSuccess('コピーしました');
             });
         }
+        window.copyToClipboard = copyToClipboard;
 
         function showSuccess(message) {
             const successDiv = document.createElement('div');
@@ -1452,6 +1464,7 @@
                     alert('ログインに失敗しました: ' + error.message);
                 });
         }
+        window.signIn = signIn;
 
         function signOut() {
             if (confirm('ログアウトしますか？')) {
@@ -1464,31 +1477,11 @@
                     });
             }
         }
+        window.signOut = signOut;
         
         // Initialize keyboard shortcuts after all functions are defined
         initKeyboardShortcuts();
         
-        // グローバルスコープに関数を公開（HTML内のonclickから呼び出すため）
-        window.signIn = signIn;
-        window.signOut = signOut;
-        window.openModal = openModal;
-        window.closeModal = closeModal;
-        window.openCategoryModal = openCategoryModal;
-        window.closeCategoryModal = closeCategoryModal;
-        window.editCategory = editCategory;
-        window.deleteCategory = deleteCategory;
-        window.selectCategory = selectCategory;
-        window.toggleMobileMenu = toggleMobileMenu;
-        window.closeMobileMenu = closeMobileMenu;
-        window.handleSnippetClick = handleSnippetClick;
-        window.searchSnippets = searchSnippets;
-        window.handleSearchKeydown = handleSearchKeydown;
-        window.togglePin = togglePin;
-        window.copyToClipboard = copyToClipboard;
-        window.editSnippet = editSnippet;
-        window.deleteSnippet = deleteSnippet;
-        window.exportData = exportData;
-        window.importData = importData;
         
         }); // DOMContentLoaded
     </script>
