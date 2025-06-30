@@ -767,7 +767,6 @@
         let editingSnippet = null;
         let editingCategory = null;
         let searchQuery = '';
-        let searchTimeout = null;
 
         // Default categories
         const defaultCategories = [
@@ -932,8 +931,8 @@
                 ? snippets.filter(s => s.categoryId === selectedCategory)
                 : snippets;
             
-            // 検索フィルター（3文字以上の場合のみ）
-            if (searchQuery && searchQuery.length >= 3) {
+            // 検索フィルター
+            if (searchQuery) {
                 filteredSnippets = filteredSnippets.filter(s => 
                     s.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
                     s.content.toLowerCase().includes(searchQuery.toLowerCase())
@@ -1025,12 +1024,11 @@
                             </h2>
                             <div style="position: relative; max-width: 300px;">
                                 <input type="search" 
-                                       placeholder="検索... (3文字以上)" 
+                                       placeholder="検索... (Enterで実行)" 
                                        class="form-input" 
                                        style="width: 100%; padding-left: 2.5rem; padding-right: 3rem;"
                                        value="${searchQuery}"
-                                       onchange="searchSnippets(this.value)"
-                                       oninput="searchSnippets(this.value)">
+                                       onkeydown="handleSearchKeydown(event)">
                                 <span style="position: absolute; left: 0.75rem; top: 50%; transform: translateY(-50%); color: #9ca3af;">🔍</span>
                                 <kbd class="desktop-only" style="position: absolute; right: 0.5rem; top: 50%; transform: translateY(-50%); font-size: 0.75rem; padding: 0.125rem 0.375rem; background: #f3f4f6; border-radius: 0.25rem; color: #6b7280; border: 1px solid #e5e7eb;">⌘K</kbd>
                             </div>
@@ -1116,17 +1114,17 @@
             }
         }
         
-        function searchSnippets(query) {
-            // Clear previous timeout
-            if (searchTimeout) {
-                clearTimeout(searchTimeout);
-            }
-            
-            // Set new timeout for debounce (500ms delay)
-            searchTimeout = setTimeout(() => {
-                searchQuery = query;
+        function handleSearchKeydown(event) {
+            if (event.key === 'Enter') {
+                event.preventDefault();
+                searchQuery = event.target.value;
                 renderApp();
-            }, 500);
+            } else if (event.key === 'Escape') {
+                event.preventDefault();
+                event.target.value = '';
+                searchQuery = '';
+                renderApp();
+            }
         }
 
         function openModal(snippetId = null) {
