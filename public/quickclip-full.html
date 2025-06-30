@@ -1175,6 +1175,7 @@
         }
 
         function editSnippet(snippetId) {
+            console.log('editSnippet called with:', snippetId);
             openModal(snippetId);
         }
 
@@ -1208,6 +1209,7 @@
         }
 
         function copyToClipboard(text) {
+            console.log('copyToClipboard called with:', text);
             navigator.clipboard.writeText(text).then(() => {
                 showSuccess('コピーしました');
             }).catch(err => {
