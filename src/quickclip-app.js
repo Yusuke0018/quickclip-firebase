@@ -21,12 +21,13 @@ import {
 
 // Firebase configuration
 const firebaseConfig = {
-    apiKey: "AIzaSyBCQBXkaP6wcBAhiQJhNwJYMmOJsHKhM3o",
+    apiKey: "AIzaSyDjrzvuPGmNrQuqzBnN_y5xDStCU-y5HlM",
     authDomain: "quickclip-4446c.firebaseapp.com",
     projectId: "quickclip-4446c",
     storageBucket: "quickclip-4446c.firebasestorage.app",
-    messagingSenderId: "764097467141",
-    appId: "1:764097467141:web:2e893b8b45ad90f6ade602"
+    messagingSenderId: "31602504581",
+    appId: "1:31602504581:web:c80fe6bf2a0e60c281caec",
+    measurementId: "G-H0GXNRP5TW"
 };
 
 // Initialize Firebase
@@ -103,7 +104,7 @@ async function loadUserData(userId) {
 }
 
 // Sign in function
-export function signIn() {
+function signIn() {
     signInWithPopup(auth, provider)
         .then((result) => {
             console.log('Login successful:', result.user.email);
@@ -114,8 +115,8 @@ export function signIn() {
         });
 }
 
-// Sign out function
-export function signOut() {
+// Sign out function  
+function signOut() {
     if (confirm('ログアウトしますか？')) {
         firebaseSignOut(auth)
             .then(() => {
@@ -424,3 +425,21 @@ function updateActiveCategory() {
         button.classList.remove('active');
     });
 }
+
+// Add missing modal functions
+window.openSnippetModal = (snippet = null) => {
+    // Implementation for opening snippet modal
+    console.log('Open snippet modal');
+};
+
+window.closeSnippetModal = () => {
+    document.getElementById('snippetModal').style.display = 'none';
+};
+
+window.openMobileMenu = () => {
+    document.getElementById('sidebar').classList.add('mobile-active');
+};
+
+window.closeMobileMenu = () => {
+    document.getElementById('sidebar').classList.remove('mobile-active');
+};
