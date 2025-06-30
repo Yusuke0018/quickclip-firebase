@@ -1025,10 +1025,9 @@
                             <div style="position: relative; max-width: 300px;">
                                 <input type="search" 
                                        placeholder="検索... (Enterで実行)" 
-                                       class="form-input" 
+                                       class="form-input search-input" 
                                        style="width: 100%; padding-left: 2.5rem; padding-right: 3rem;"
-                                       value="${searchQuery}"
-                                       onkeydown="handleSearchKeydown(event)">
+                                       value="${searchQuery}">
                                 <span style="position: absolute; left: 0.75rem; top: 50%; transform: translateY(-50%); color: #9ca3af;">🔍</span>
                             </div>
                         </div>
@@ -1076,6 +1075,14 @@
                     </main>
                 </div>
             `;
+            
+            // Add event listener to search input after render
+            setTimeout(() => {
+                const searchInput = document.querySelector('.search-input');
+                if (searchInput) {
+                    searchInput.addEventListener('keydown', handleSearchKeydown);
+                }
+            }, 0);
         }
 
         // UI Functions
