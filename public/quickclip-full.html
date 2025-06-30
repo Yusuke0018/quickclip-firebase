@@ -767,6 +767,7 @@
         let editingSnippet = null;
         let editingCategory = null;
         let searchQuery = '';
+        let searchTimeout = null;
 
         // Default categories
         const defaultCategories = [
@@ -1024,7 +1025,7 @@
                             </h2>
                             <div style="position: relative; max-width: 300px;">
                                 <input type="search" 
-                                       placeholder="検索 (⌘K)" 
+                                       placeholder="検索... (3文字以上)" 
                                        class="form-input" 
                                        style="width: 100%; padding-left: 2.5rem; padding-right: 3rem;"
                                        value="${searchQuery}"
@@ -1116,8 +1117,23 @@
         }
         
         function searchSnippets(query) {
-            searchQuery = query;
-            renderApp();
+            // Clear previous timeout
+            if (searchTimeout) {
+                clearTimeout(searchTimeout);
+            }
+            
+            // If query is less than 3 characters, clear search immediately
+            if (query.length < 3) {
+                searchQuery = '';
+                renderApp();
+                return;
+            }
+            
+            // Set new timeout for debounce (500ms delay)
+            searchTimeout = setTimeout(() => {
+                searchQuery = query;
+                renderApp();
+            }, 500);
         }
 
         function openModal(snippetId = null) {
