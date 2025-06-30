@@ -932,8 +932,8 @@
                 ? snippets.filter(s => s.categoryId === selectedCategory)
                 : snippets;
             
-            // 検索フィルター
-            if (searchQuery) {
+            // 検索フィルター（3文字以上の場合のみ）
+            if (searchQuery && searchQuery.length >= 3) {
                 filteredSnippets = filteredSnippets.filter(s => 
                     s.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
                     s.content.toLowerCase().includes(searchQuery.toLowerCase())
@@ -1120,13 +1120,6 @@
             // Clear previous timeout
             if (searchTimeout) {
                 clearTimeout(searchTimeout);
-            }
-            
-            // If query is less than 3 characters, clear search immediately
-            if (query.length < 3) {
-                searchQuery = '';
-                renderApp();
-                return;
             }
             
             // Set new timeout for debounce (500ms delay)
