@@ -123,71 +123,88 @@ const App = () => {
   };
 
   const copyToClipboard = async (text, id) => {
-    try {
-      // まず新しい Clipboard API を試す
-      if (navigator.clipboard && window.isSecureContext) {
-        console.log('Clipboard API を使用してコピーを試みます');
+    console.log('コピー処理開始: テキストの長さ =', text.length);
+    
+    // プライマリ方法: navigator.clipboard.writeText() を試す
+    if (window.isSecureContext && navigator.clipboard && navigator.clipboard.writeText) {
+      console.log('セキュアコンテキスト確認済み、Clipboard API を使用します');
+      
+      try {
         await navigator.clipboard.writeText(text);
-        console.log('Clipboard API でのコピーに成功しました');
+        console.log('Clipboard API でコピーに成功しました');
         setCopiedId(id);
         setTimeout(() => setCopiedId(null), 2000);
         alert('クリップボードにコピーしました');
         return;
+      } catch (err) {
+        console.error('Clipboard API でコピーに失敗:', err);
+        console.warn('フォールバック方式に切り替えます...');
       }
-    } catch (err) {
-      console.error('Clipboard API でのコピーに失敗:', err);
-      console.log('フォールバック方式に切り替えます');
+    } else {
+      if (!window.isSecureContext) {
+        console.warn('セキュアコンテキストではありません（HTTPSが必要）');
+      }
+      if (!navigator.clipboard) {
+        console.warn('Clipboard API がサポートされていません');
+      }
     }
 
     // フォールバック: 古い execCommand 方式を使用
+    console.log('フォールバック: document.execCommand を使用します');
+    
     try {
-      console.log('execCommand を使用してコピーを試みます');
-      
       // 一時的なテキストエリアを作成
       const textArea = document.createElement('textarea');
       textArea.value = text;
       
-      // スタイルを設定して画面外に配置
+      // 画面外に配置（ユーザーに見えないようにする）
       textArea.style.position = 'fixed';
-      textArea.style.top = '0';
-      textArea.style.left = '-999999px';
-      textArea.style.width = '2em';
-      textArea.style.height = '2em';
-      textArea.style.padding = '0';
-      textArea.style.border = 'none';
-      textArea.style.outline = 'none';
-      textArea.style.boxShadow = 'none';
-      textArea.style.background = 'transparent';
+      textArea.style.top = '-9999px';
+      textArea.style.left = '-9999px';
+      textArea.style.opacity = '0';
+      
+      // iOS対策
+      textArea.contentEditable = 'true';
+      textArea.readOnly = false;
       
       document.body.appendChild(textArea);
-      textArea.focus();
-      textArea.select();
       
-      // iOSデバイスの場合の特別な処理
-      if (navigator.userAgent.match(/ipad|ipod|iphone/i)) {
-        const range = document.createRange();
-        range.selectNodeContents(textArea);
-        const selection = window.getSelection();
-        selection.removeAllRanges();
-        selection.addRange(range);
-        textArea.setSelectionRange(0, 999999);
-      }
-      
-      // コピーを実行
-      const successful = document.execCommand('copy');
-      document.body.removeChild(textArea);
-      
-      if (successful) {
-        console.log('execCommand でのコピーに成功しました');
-        setCopiedId(id);
-        setTimeout(() => setCopiedId(null), 2000);
-        alert('クリップボードにコピーしました（互換モード）');
-      } else {
-        throw new Error('execCommand でのコピーに失敗しました');
+      try {
+        // iOSの場合、特別な処理が必要
+        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+        
+        if (isIOS) {
+          const range = document.createRange();
+          range.selectNodeContents(textArea);
+          const selection = window.getSelection();
+          selection.removeAllRanges();
+          selection.addRange(range);
+          textArea.setSelectionRange(0, 999999);
+        } else {
+          textArea.select();
+        }
+        
+        // コピーを実行
+        const successful = document.execCommand('copy');
+        
+        if (successful) {
+          console.log('document.execCommand でコピーに成功しました');
+          setCopiedId(id);
+          setTimeout(() => setCopiedId(null), 2000);
+          alert('クリップボードにコピーしました（互換モード）');
+        } else {
+          console.error('document.execCommand でコピーに失敗しました');
+          alert('コピーに失敗しました。手動でテキストを選択してコピーしてください。');
+        }
+      } catch (err) {
+        console.error('フォールバック方法でもコピーに失敗:', err);
+        alert('コピーに失敗しました。ブラウザの設定を確認してください。');
+      } finally {
+        document.body.removeChild(textArea);
       }
     } catch (err) {
       console.error('すべてのコピー方法が失敗しました:', err);
-      alert('コピーに失敗しました。手動でテキストを選択してコピーしてください。');
+      alert('コピーに失敗しました。ブラウザの設定を確認してください。');
     }
   };
 
