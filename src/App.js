@@ -122,14 +122,73 @@ const App = () => {
     }
   };
 
-  const copyToClipboard = (text, id) => {
-    navigator.clipboard.writeText(text).then(() => {
-      setCopiedId(id);
-      setTimeout(() => setCopiedId(null), 2000);
-    }).catch(err => {
-      console.error('コピーに失敗:', err);
-      alert('コピーに失敗しました');
-    });
+  const copyToClipboard = async (text, id) => {
+    try {
+      // まず新しい Clipboard API を試す
+      if (navigator.clipboard && window.isSecureContext) {
+        console.log('Clipboard API を使用してコピーを試みます');
+        await navigator.clipboard.writeText(text);
+        console.log('Clipboard API でのコピーに成功しました');
+        setCopiedId(id);
+        setTimeout(() => setCopiedId(null), 2000);
+        alert('クリップボードにコピーしました');
+        return;
+      }
+    } catch (err) {
+      console.error('Clipboard API でのコピーに失敗:', err);
+      console.log('フォールバック方式に切り替えます');
+    }
+
+    // フォールバック: 古い execCommand 方式を使用
+    try {
+      console.log('execCommand を使用してコピーを試みます');
+      
+      // 一時的なテキストエリアを作成
+      const textArea = document.createElement('textarea');
+      textArea.value = text;
+      
+      // スタイルを設定して画面外に配置
+      textArea.style.position = 'fixed';
+      textArea.style.top = '0';
+      textArea.style.left = '-999999px';
+      textArea.style.width = '2em';
+      textArea.style.height = '2em';
+      textArea.style.padding = '0';
+      textArea.style.border = 'none';
+      textArea.style.outline = 'none';
+      textArea.style.boxShadow = 'none';
+      textArea.style.background = 'transparent';
+      
+      document.body.appendChild(textArea);
+      textArea.focus();
+      textArea.select();
+      
+      // iOSデバイスの場合の特別な処理
+      if (navigator.userAgent.match(/ipad|ipod|iphone/i)) {
+        const range = document.createRange();
+        range.selectNodeContents(textArea);
+        const selection = window.getSelection();
+        selection.removeAllRanges();
+        selection.addRange(range);
+        textArea.setSelectionRange(0, 999999);
+      }
+      
+      // コピーを実行
+      const successful = document.execCommand('copy');
+      document.body.removeChild(textArea);
+      
+      if (successful) {
+        console.log('execCommand でのコピーに成功しました');
+        setCopiedId(id);
+        setTimeout(() => setCopiedId(null), 2000);
+        alert('クリップボードにコピーしました（互換モード）');
+      } else {
+        throw new Error('execCommand でのコピーに失敗しました');
+      }
+    } catch (err) {
+      console.error('すべてのコピー方法が失敗しました:', err);
+      alert('コピーに失敗しました。手動でテキストを選択してコピーしてください。');
+    }
   };
 
   const addCategory = async () => {
