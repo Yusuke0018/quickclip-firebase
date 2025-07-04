@@ -58,6 +58,28 @@ const App = () => {
     return unsubscribe;
   }, []);
 
+  // コピーボタンのイベントリスナーを設定
+  useEffect(() => {
+    const handleCopyClick = (event) => {
+      const button = event.target.closest('.copy-btn');
+      if (!button) return;
+
+      const textToCopy = button.getAttribute('data-text-to-copy');
+      const snippetId = button.getAttribute('data-snippet-id');
+
+      if (textToCopy) {
+        copyToClipboard(textToCopy, snippetId);
+      }
+    };
+
+    // イベント委譲を使用
+    document.addEventListener('click', handleCopyClick);
+
+    return () => {
+      document.removeEventListener('click', handleCopyClick);
+    };
+  }, []);
+
   const loadUserData = async (userId) => {
     try {
       const [categoriesData, snippetsData] = await Promise.all([
@@ -139,7 +161,7 @@ const App = () => {
         console.log('Clipboard API でコピーに成功しました');
         setCopiedId(id);
         setTimeout(() => setCopiedId(null), 2000);
-        alert('クリップボードにコピーしました');
+        alert('クリップボードにコピーしました！');
         return;
       } catch (err) {
         console.error('Clipboard API でコピーに失敗:', err);
@@ -560,8 +582,9 @@ const App = () => {
                             <Star className={`w-4 h-4 ${snippet.isPinned ? 'text-yellow-400 fill-current' : ''}`} />
                           </button>
                           <button
-                            onClick={() => copyToClipboard(snippet.content, snippet.id)}
-                            className="p-1 hover:bg-gray-500 rounded"
+                            className="copy-btn p-1 hover:bg-gray-500 rounded"
+                            data-text-to-copy={snippet.content}
+                            data-snippet-id={snippet.id}
                           >
                             {copiedId === snippet.id ? (
                               <Check className="w-4 h-4 text-green-400" />

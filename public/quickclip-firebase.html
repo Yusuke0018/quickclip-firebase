@@ -255,6 +255,36 @@
                 return unsubscribe;
             }, []);
 
+            // コピーボタンのイベントリスナー
+            useEffect(() => {
+                const handleCopyClick = (e) => {
+                    const copyBtn = e.target.closest('.copy-btn');
+                    if (copyBtn) {
+                        e.stopPropagation();
+                        const textToCopy = copyBtn.getAttribute('data-text-to-copy');
+                        const snippetId = copyBtn.getAttribute('data-snippet-id');
+                        if (textToCopy) {
+                            // 無効な制御文字を除去（NULL文字など）
+                            const cleanedText = textToCopy.replace(/\x00/g, '');
+                            
+                            navigator.clipboard.writeText(cleanedText).then(() => {
+                                alert('クリップボードにコピーしました！');
+                                if (snippetId) {
+                                    setCopiedId(snippetId);
+                                    setTimeout(() => setCopiedId(null), 2000);
+                                }
+                            }).catch(err => {
+                                console.error('コピーに失敗:', err);
+                                alert('コピーに失敗しました');
+                            });
+                        }
+                    }
+                };
+
+                document.addEventListener('click', handleCopyClick);
+                return () => document.removeEventListener('click', handleCopyClick);
+            }, []);
+
             const loadUserData = async (userId) => {
                 try {
                     const [categoriesData, snippetsData] = await Promise.all([
@@ -552,8 +582,9 @@
                                                                 <Star className={`w-4 h-4 ${snippet.isPinned ? 'text-yellow-400 fill-current' : ''}`} />
                                                             </button>
                                                             <button
-                                                                onClick={() => copyToClipboard(snippet.content, snippet.id)}
-                                                                className="p-1 hover:bg-gray-500 rounded"
+                                                                className="copy-btn p-1 hover:bg-gray-500 rounded"
+                                                                data-text-to-copy={snippet.content}
+                                                                data-snippet-id={snippet.id}
                                                             >
                                                                 {copiedId === snippet.id ? (
                                                                     <Check className="w-4 h-4 text-green-400" />
