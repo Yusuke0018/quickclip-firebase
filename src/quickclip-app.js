@@ -367,9 +367,8 @@ window.copyToClipboard = async (snippetId) => {
     const snippet = snippets.find(s => s.id === snippetId);
     if (!snippet) return;
     
-    // テキストを無害化（制御文字のみを除去）
-    // 制御文字（0x00-0x1F, 0x7F-0x9F）を除去し、タブ・改行・キャリッジリターンは保持
-    const cleanedText = snippet.content.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F-\x9F]/g, '');
+    // 無効な制御文字を除去（NULL文字など）
+    const cleanedText = snippet.content.replace(/\x00/g, '');
     
     try {
         await navigator.clipboard.writeText(cleanedText);

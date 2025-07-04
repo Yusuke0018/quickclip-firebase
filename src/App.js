@@ -124,12 +124,10 @@ const App = () => {
 
   const copyToClipboard = async (text, id) => {
     console.log('コピー処理開始: テキストの長さ =', text.length);
-    console.log('元のテキスト:', text);
-    console.log('文字コード:', [...text].map(c => c.charCodeAt(0).toString(16)).join(' '));
     
-    // テキストをそのまま使用（クリーニングを一時的に無効化してテスト）
-    const cleanedText = text;
-    console.log('クリーニング後のテキスト:', cleanedText);
+    // 無効な制御文字を除去（NULL文字など）
+    const cleanedText = text.replace(/\x00/g, '');
+    
     console.log('クリーニング後の長さ:', cleanedText.length);
     
     // プライマリ方法: navigator.clipboard.writeText() を試す
