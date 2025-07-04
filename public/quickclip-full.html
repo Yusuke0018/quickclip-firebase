@@ -913,7 +913,6 @@
                 showSuccess('データを正常に移行しました');
             } catch (error) {
                 console.error('Migration error:', error);
-                alert('データ移行中にエラーが発生しました');
             }
         }
 
@@ -1200,7 +1199,6 @@
                 showSuccess('定型文を削除しました');
             } catch (error) {
                 console.error('Error deleting snippet:', error);
-                alert('削除中にエラーが発生しました');
             }
         }
         window.deleteSnippet = deleteSnippet;
@@ -1284,7 +1282,6 @@
                 renderApp();
             } catch (error) {
                 console.error('Error saving snippet:', error);
-                alert('保存中にエラーが発生しました');
             }
         });
 
@@ -1309,7 +1306,6 @@
                 showSuccess('データをエクスポートしました');
             } catch (error) {
                 console.error('Export error:', error);
-                alert('エクスポートに失敗しました');
             }
         }
         window.exportData = exportData;
@@ -1364,7 +1360,6 @@
                 event.target.value = '';
             } catch (error) {
                 console.error('Import error:', error);
-                alert('インポートに失敗しました: ' + error.message);
             }
         }
         window.importData = importData;
@@ -1402,7 +1397,13 @@
             // カテゴリーに属する定型文があるかチェック
             const categorySnippets = snippets.filter(s => s.categoryId === editingCategory.id);
             if (categorySnippets.length > 0) {
-                alert(`このカテゴリーには${categorySnippets.length}個の定型文があります。先に定型文を削除するか、他のカテゴリーに移動してください。`);
+                // エラーメッセージを表示
+                const errorDiv = document.createElement('div');
+                errorDiv.className = 'success-message';
+                errorDiv.style.backgroundColor = '#dc2626';
+                errorDiv.textContent = `このカテゴリーには${categorySnippets.length}個の定型文があります。先に定型文を削除するか、他のカテゴリーに移動してください。`;
+                document.body.appendChild(errorDiv);
+                setTimeout(() => errorDiv.remove(), 5000);
                 return;
             }
             
@@ -1416,7 +1417,6 @@
                 showSuccess('カテゴリーを削除しました');
             } catch (error) {
                 console.error('Error deleting category:', error);
-                alert('削除中にエラーが発生しました');
             }
         }
         window.deleteCategory = deleteCategory;
@@ -1456,7 +1456,6 @@
                 renderApp();
             } catch (error) {
                 console.error('Error saving category:', error);
-                alert('保存中にエラーが発生しました');
             }
         });
 
@@ -1468,7 +1467,6 @@
                 })
                 .catch((error) => {
                     console.error('Login error:', error);
-                    alert('ログインに失敗しました: ' + error.message);
                 });
         }
         window.signIn = signIn;
@@ -1497,7 +1495,15 @@
                 const textToCopy = copyBtn.getAttribute('data-text-to-copy');
                 if (textToCopy) {
                     navigator.clipboard.writeText(textToCopy).then(() => {
-                        alert('クリップボードにコピーしました！');
+                        // コピーボタンのテキストを一時的に変更
+                        const originalContent = copyBtn.innerHTML;
+                        copyBtn.innerHTML = '✓';
+                        copyBtn.style.color = '#10b981';
+                        
+                        setTimeout(() => {
+                            copyBtn.innerHTML = originalContent;
+                            copyBtn.style.color = '';
+                        }, 2000);
                     }).catch(err => {
                         console.error('コピーに失敗:', err);
                         // フォールバック
@@ -1507,9 +1513,17 @@
                         textarea.select();
                         try {
                             document.execCommand('copy');
-                            alert('クリップボードにコピーしました！');
+                            // コピーボタンのテキストを一時的に変更
+                            const originalContent = copyBtn.innerHTML;
+                            copyBtn.innerHTML = '✓';
+                            copyBtn.style.color = '#10b981';
+                            
+                            setTimeout(() => {
+                                copyBtn.innerHTML = originalContent;
+                                copyBtn.style.color = '';
+                            }, 2000);
                         } catch (err) {
-                            alert('コピーに失敗しました');
+                            console.error('コピーに失敗:', err);
                         }
                         document.body.removeChild(textarea);
                     });

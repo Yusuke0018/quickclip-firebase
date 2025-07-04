@@ -161,7 +161,6 @@ const App = () => {
         console.log('Clipboard API でコピーに成功しました');
         setCopiedId(id);
         setTimeout(() => setCopiedId(null), 2000);
-        alert('クリップボードにコピーしました！');
         return;
       } catch (err) {
         console.error('Clipboard API でコピーに失敗:', err);
@@ -218,14 +217,14 @@ const App = () => {
           console.log('document.execCommand でコピーに成功しました');
           setCopiedId(id);
           setTimeout(() => setCopiedId(null), 2000);
-          alert('クリップボードにコピーしました（互換モード）');
+          // Visual feedback is already provided by the check icon
         } else {
           console.error('document.execCommand でコピーに失敗しました');
-          alert('コピーに失敗しました。手動でテキストを選択してコピーしてください。');
+          console.error('コピーに失敗しました');
         }
       } catch (err) {
         console.error('フォールバック方法でもコピーに失敗:', err);
-        alert('コピーに失敗しました。ブラウザの設定を確認してください。');
+        console.error('コピーに失敗しました');
       } finally {
         document.body.removeChild(textArea);
       }
