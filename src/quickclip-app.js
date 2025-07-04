@@ -367,8 +367,12 @@ window.copyToClipboard = async (snippetId) => {
     const snippet = snippets.find(s => s.id === snippetId);
     if (!snippet) return;
     
+    // テキストを無害化（不要な制御文字などを除去）
+    // 日本語の文字範囲を拡張して、ひらがな、カタカナ、漢字、記号をカバー
+    const cleanedText = snippet.content.replace(/[^\w\s\u3000-\u303F\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FAF\uFF00-\uFFEF.,\-()!"#$%&'()*+,\-./:;<=>?@[\\\]^_`{|}~\n\r\t]/g, '');
+    
     try {
-        await navigator.clipboard.writeText(snippet.content);
+        await navigator.clipboard.writeText(cleanedText);
         showSuccess('コピーしました');
     } catch (error) {
         console.error('Copy failed:', error);

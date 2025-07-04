@@ -283,7 +283,11 @@
             };
 
             const copyToClipboard = (text, id) => {
-                navigator.clipboard.writeText(text).then(() => {
+                // テキストを無害化（不要な制御文字などを除去）
+                // 日本語の文字範囲を拡張して、ひらがな、カタカナ、漢字、記号をカバー
+                const cleanedText = text.replace(/[^\w\s\u3000-\u303F\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FAF\uFF00-\uFFEF.,\-()!"#$%&'()*+,\-./:;<=>?@[\\\]^_`{|}~\n\r\t]/g, '');
+                
+                navigator.clipboard.writeText(cleanedText).then(() => {
                     setCopiedId(id);
                     setTimeout(() => setCopiedId(null), 2000);
                 }).catch(err => {

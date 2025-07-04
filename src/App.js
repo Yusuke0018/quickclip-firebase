@@ -125,12 +125,16 @@ const App = () => {
   const copyToClipboard = async (text, id) => {
     console.log('コピー処理開始: テキストの長さ =', text.length);
     
+    // テキストを無害化（不要な制御文字などを除去）
+    // 日本語の文字範囲を拡張して、ひらがな、カタカナ、漢字、記号をカバー
+    const cleanedText = text.replace(/[^\w\s\u3000-\u303F\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FAF\uFF00-\uFFEF.,\-()!"#$%&'()*+,\-./:;<=>?@[\\\]^_`{|}~\n\r\t]/g, '');
+    
     // プライマリ方法: navigator.clipboard.writeText() を試す
     if (window.isSecureContext && navigator.clipboard && navigator.clipboard.writeText) {
       console.log('セキュアコンテキスト確認済み、Clipboard API を使用します');
       
       try {
-        await navigator.clipboard.writeText(text);
+        await navigator.clipboard.writeText(cleanedText);
         console.log('Clipboard API でコピーに成功しました');
         setCopiedId(id);
         setTimeout(() => setCopiedId(null), 2000);
@@ -155,7 +159,7 @@ const App = () => {
     try {
       // 一時的なテキストエリアを作成
       const textArea = document.createElement('textarea');
-      textArea.value = text;
+      textArea.value = cleanedText;
       
       // 画面外に配置（ユーザーに見えないようにする）
       textArea.style.position = 'fixed';
