@@ -125,9 +125,9 @@ const App = () => {
   const copyToClipboard = async (text, id) => {
     console.log('コピー処理開始: テキストの長さ =', text.length);
     
-    // テキストを無害化（不要な制御文字などを除去）
-    // 日本語の文字範囲を拡張して、ひらがな、カタカナ、漢字、記号をカバー
-    const cleanedText = text.replace(/[^\w\s\u3000-\u303F\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FAF\uFF00-\uFFEF.,\-()!"#$%&'()*+,\-./:;<=>?@[\\\]^_`{|}~\n\r\t]/g, '');
+    // テキストを無害化（制御文字のみを除去）
+    // 制御文字（0x00-0x1F, 0x7F-0x9F）を除去し、タブ・改行・キャリッジリターンは保持
+    const cleanedText = text.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F-\x9F]/g, '');
     
     // プライマリ方法: navigator.clipboard.writeText() を試す
     if (window.isSecureContext && navigator.clipboard && navigator.clipboard.writeText) {
