@@ -124,10 +124,13 @@ const App = () => {
 
   const copyToClipboard = async (text, id) => {
     console.log('コピー処理開始: テキストの長さ =', text.length);
+    console.log('元のテキスト:', text);
+    console.log('文字コード:', [...text].map(c => c.charCodeAt(0).toString(16)).join(' '));
     
-    // テキストを無害化（制御文字のみを除去）
-    // 制御文字（0x00-0x1F, 0x7F-0x9F）を除去し、タブ・改行・キャリッジリターンは保持
-    const cleanedText = text.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F-\x9F]/g, '');
+    // テキストをそのまま使用（クリーニングを一時的に無効化してテスト）
+    const cleanedText = text;
+    console.log('クリーニング後のテキスト:', cleanedText);
+    console.log('クリーニング後の長さ:', cleanedText.length);
     
     // プライマリ方法: navigator.clipboard.writeText() を試す
     if (window.isSecureContext && navigator.clipboard && navigator.clipboard.writeText) {
