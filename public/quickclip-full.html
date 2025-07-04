@@ -1063,9 +1063,14 @@
                                                 <button class="btn-icon" onclick="togglePin('${snippet.id}')" title="ピン留め">
                                                     ${snippet.isPinned ? '⭐' : '☆'}
                                                 </button>
-                                                <button class="btn-icon copy-btn" onclick="copyToClipboard('${snippet.content.replace(/'/g, "\\'")}')" title="クリックでコピー">
-                                                    📋
-                                                </button>
+                                                ${(() => {
+                                                    const escapedContent = snippet.content
+                                                        .replace(/&/g, '&amp;')
+                                                        .replace(/"/g, '&quot;')
+                                                        .replace(/'/g, '&#39;')
+                                                        .replace(/`/g, '&#96;');
+                                                    return `<button class="btn-icon copy-btn" data-text-to-copy="${escapedContent}" title="クリックでコピー">📋</button>`;
+                                                })()}
                                                 <button class="btn-icon" onclick="editSnippet('${snippet.id}')" title="編集">
                                                     ✏️
                                                 </button>
@@ -1088,6 +1093,7 @@
                 if (searchInput) {
                     searchInput.addEventListener('keydown', handleSearchKeydown);
                 }
+                attachCopyHandlers();
             }, 0);
         }
 
@@ -1237,6 +1243,16 @@
             });
         }
         window.copyToClipboard = copyToClipboard;
+
+        function attachCopyHandlers() {
+            const buttons = document.querySelectorAll('.copy-btn');
+            buttons.forEach(button => {
+                button.onclick = () => {
+                    const textToCopy = button.getAttribute('data-text-to-copy');
+                    copyToClipboard(textToCopy);
+                };
+            });
+        }
 
         function showSuccess(message) {
             const successDiv = document.createElement('div');
